@@ -1,0 +1,48 @@
+project:
+  title: "Taija's homepage"
+  type: website
+  output-dir: docs
+  execute-dir: project
+  resources: 
+    - "_extensions/"
+    - "www/"
+
+website:
+  title: "Taija"
+  page-navigation: true
+  favicon: www/favicon.ico
+  site-url: https://www.taija.org/
+  navbar:
+    logo: /www/logo_close.png
+    left:
+      - href: index.qmd
+        text: Home
+      - text: Blog 
+        href: blog/index.qmd
+      - text: About
+        href: content/about.qmd
+    right:
+      - icon: github
+        href: https://github.com/JuliaTrustworthyAI
+  repo-url: https://github.com/JuliaTrustworthyAI/.github
+  repo-actions: [issue]
+  page-footer: 
+    left: >-
+      [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](http://creativecommons.org/licenses/by/4.0/) 
+      © 2024, Taija
+    right: 
+      - icon: house
+        href: https://www.taija.org/
+      - icon: github
+        href: https://github.com/JuliaTrustworthyAI
+
+format:
+  julia-html:
+    theme: theme-light.scss
+    css: styles.css
+    toc: true
+
+bibliography: bib.bib
+
+
+

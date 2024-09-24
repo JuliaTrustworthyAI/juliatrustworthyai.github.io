@@ -1,0 +1,21 @@
+---
+toc: false
+page-layout: custom
+css: index.css
+---
+
+::: {.content-block}
+
+{{< include welcome.qmd >}}
+
+:::
+
+{{< include hero.qmd >}}
+
+::: {.content-block}
+
+{{< include content/contribute.qmd >}}
+
+{{< include content/contact.qmd >}}
+
+:::

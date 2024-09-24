@@ -1,0 +1,9 @@
+::: {.welcome}
+
+# Welcome to Taija
+
+## Trustworthy Artificial Intelligence in Julia
+
+Taija is the organization that hosts software geared towards **T**rustworthy **A**rtificial **I**ntelligence in **J**uli**a**.
+
+:::

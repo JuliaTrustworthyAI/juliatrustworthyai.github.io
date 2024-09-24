@@ -1,0 +1,18 @@
+## Sponsors
+
+Some of Taija's contributors have been partially or fully funded by one or more of the following entities:
+
+<table width="100%">
+  <tr>
+  <td [![](www/TUDelft_logo_black.png)]() width="50%">
+    <a>
+    <img src="https://raw.githubusercontent.com/TrustworthyAIJulia/.github/main/profile/www/TUDelft_logo_black.png" alt="TU Delft Logo">
+    </a>
+  </td>
+  <td width="50%">
+    <a>
+    <img src="https://raw.githubusercontent.com/TrustworthyAIJulia/.github/main/profile/www/ing.jpeg" alt="ING Logo">
+    </a>
+  </td>
+  </tr>
+</table>

@@ -1,0 +1,16 @@
+[
+  {
+    "listing": "/blog/index.html",
+    "items": [
+      "/blog/posts/causal-recourse/index.html",
+      "/blog/posts/new-package-energysamplers/index.html",
+      "/blog/posts/conformal-llm/index.html",
+      "/blog/posts/guest-students-laplace/index.html",
+      "/blog/posts/conformal-regression/index.html",
+      "/blog/posts/conformal-image-classifier/index.html",
+      "/blog/posts/conformal-prediction/index.html",
+      "/blog/posts/a-new-tool-for-explainable-ai/index.html",
+      "/blog/posts/effortsless-bayesian-dl/index.html"
+    ]
+  }
+]

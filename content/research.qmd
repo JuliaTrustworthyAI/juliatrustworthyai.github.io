@@ -1,0 +1,10 @@
+## Research using Taija
+
+Taija has been used in the following publications:
+ 
+- *Conformal Intent Classification and Clarification for Fast and Accurate Intent Recognition* [@hengst2024conformal] [upcoming](https://arxiv.org/abs/2403.18973) in ACL's NAACL Findings 2024^[Experiments were run in parallel using Python's MAPIE and ConformalPrediction.jl, in order to cross-check results. Reported results were produced using MAPIE.].
+- *Faithful Model Explanations through Energy-Constrained Conformal Counterfactuals* [@altmeyer2024faithful] [published](https://ojs.aaai.org/index.php/AAAI/article/view/28956) in Proceedings of the AAAI Conference on Artificial Intelligence 2024.
+- *Explaining Black-Box Models through Counterfactuals* [@altmeyer2023explaining] [published](https://proceedings.juliacon.org/papers/10.21105/jcon.00130) in JuliaCon Proceedings.
+- *Endogenous Macrodynamics in Algorithmic Recourse* [@altmeyer2023endogenous] [published](https://ieeexplore.ieee.org/abstract/document/10136130) in Proceedings of the 2023 IEEE Conference on Secure and Trustworthy Machine Learning (SaTML).
+
+If you have used Taija in your research, please let us know so we can add your publication to the list. 

@@ -1,0 +1,11 @@
+## Related Software
+
+Our packages are currently tailored towards the following larger package ecosystems for AI and machine learning in Julia:
+
+- [FluxML](https://fluxml.ai/Flux.jl/stable/)
+- [MLJ](https://alan-turing-institute.github.io/MLJ.jl/dev/)
+
+Other external packages and ecosystems related to Trustworthy AI in Julia include:
+
+- [Julia-XAI](https://github.com/Julia-XAI)
+- [ShapML.jl](https://github.com/nredell/ShapML.jl)

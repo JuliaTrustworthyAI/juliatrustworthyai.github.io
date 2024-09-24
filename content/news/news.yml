@@ -1,0 +1,16 @@
+- caption: "Taija takes part in Julia Season of Contributions"
+  image: "/www/gsoc.png"
+  link: "https://julialang.org/jsoc/gsoc/taija/"
+  
+- caption: "Counterfactual Explanations"
+  image: "https://raw.githubusercontent.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/main/docs/src/assets/logo.svg"
+  link: "https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl"
+  
+- caption: "Conformal Prediction"
+  image: "https://raw.githubusercontent.com/JuliaTrustworthyAI/ConformalPrediction.jl/main/dev/logo/small_logo.png"
+  link: "https://github.com/JuliaTrustworthyAI/ConformalPrediction.jl"
+
+- caption: "Bayesian Deep Learning"
+  image: "https://raw.githubusercontent.com/JuliaTrustworthyAI/LaplaceRedux.jl/main/docs/src/assets/logo.svg"
+  link: "https://github.com/JuliaTrustworthyAI/LaplaceRedux.jl"
+  

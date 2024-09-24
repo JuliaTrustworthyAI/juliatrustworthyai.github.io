@@ -1,0 +1,25 @@
+---
+title: "Taija's Blog"
+listing:
+  contents: posts
+  sort: "date desc"
+  type: default
+  categories: true
+  fields: [image, date, title, description, author, reading-time, file-modified]
+  image-align: left
+  feed: true
+---
+
+Welcome to Taija's blog! Here you will find accessible introductions to packages, tutorials and other resources.
+
+::: {.callout-note}
+
+## Interested in contributing?
+
+Have you used one of our packages and found it useful? Or have you perhaps even contributed to one of our packages? We'd love for you to spread the word here! If you're interested in contributing a blog post, please get in touch or open a [pull request](https://github.com/JuliaTrustworthyAI/.github).
+
+:::
+
+
+
+

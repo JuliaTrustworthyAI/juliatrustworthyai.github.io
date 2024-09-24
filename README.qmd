@@ -1,0 +1,30 @@
+---
+format: 
+    gfm:
+        wrap: preserve
+bibliography: bib.bib
+---
+
+# Taija
+
+Taija is the organization that hosts software geared towards Trustworthy Artificial Intelligence in Julia.
+
+> [!TIP]
+> Find more relevant information and Taija's blog at [www.taija.org](https://www.taija.org/).
+
+{{< include content/about.qmd >}}
+
+{{< include content/contribute.qmd >}}
+
+{{< include content/research.qmd >}}
+
+{{< include content/sponsors.qmd >}}
+
+{{< include content/related.qmd >}}
+
+{{< include content/contact.qmd >}}
+
+## 🎓 References
+
+::: {#refs}
+:::

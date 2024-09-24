@@ -1,0 +1,25 @@
+::: {.column-screen}
+
+::: {.hero-banner}
+
+::: {.hero-banner-carousel}
+{{< include content/news/news.qmd >}}
+:::
+
+::: {.hero-banner-text}
+# Make sense of your AI models
+
+Artificial Intelligence (AI) has been advancing rapidly in recent years. Consequently, Julia's AI ecosystem has also been growing fast. Taija is an effort to provide users with tools to make sense of the AI models that they train and deploy. Some highlights include:
+
+- Model Explainability ([CounterfactualExplanations.jl](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl))
+- Algorithmic Recourse ([CounterfactualExplanations.jl](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl), [AlgorithmicRecourseDynamics.jl](https://github.com/JuliaTrustworthyAI/AlgorithmicRecourseDynamics.jl))
+- Predictive Uncertainty Quantification ([ConformalPrediction.jl](https://github.com/JuliaTrustworthyAI/ConformalPrediction.jl), [LaplaceRedux.jl](https://github.com/JuliaTrustworthyAI/LaplaceRedux.jl))
+- Effortless Bayesian Deep Learning ([LaplaceRedux.jl](https://github.com/JuliaTrustworthyAI/LaplaceRedux.jl))
+- Hybrid Learning ([JointEnergyModels.jl](https://github.com/JuliaTrustworthyAI/JointEnergyModels.jl))
+
+Taija is a community effort largely maintained by academics and students at TU Delft. We welcome contributions of any kind.
+:::
+
+::: 
+
+:::

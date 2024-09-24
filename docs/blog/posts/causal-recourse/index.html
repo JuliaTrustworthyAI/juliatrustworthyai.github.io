@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jorge Luiz Franco">
+<meta name="dcterms.date" content="2024-09-17">
+<meta name="description" content="This post introduces a new tool in CounterfactualExplanations.jl, enhancing the package with causal reasoning to generate counterfactual explanations.">
+
+<title>When Causality meets Recourse – Taija</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../www/favicon.ico" rel="icon">
+<script src="../../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../../www/logo_close.png" alt="" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">Taija</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../blog/index.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../content/about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/JuliaTrustworthyAI"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#project-overview" id="toc-project-overview" class="nav-link" data-scroll-target="#project-overview">Project Overview</a>
+  <ul class="collapse">
+  <li><a href="#key-contributions" id="toc-key-contributions" class="nav-link" data-scroll-target="#key-contributions">Key Contributions</a></li>
+  <li><a href="#sec-background" id="toc-sec-background" class="nav-link" data-scroll-target="#sec-background">Theoretical Background</a></li>
+  <li><a href="#implementation" id="toc-implementation" class="nav-link" data-scroll-target="#implementation">Implementation</a>
+  <ul class="collapse">
+  <li><a href="#causal-inference" id="toc-causal-inference" class="nav-link" data-scroll-target="#causal-inference">Causal Inference</a></li>
+  <li><a href="#counterfactualexplanations.jl" id="toc-counterfactualexplanations.jl" class="nav-link" data-scroll-target="#counterfactualexplanations.jl"><code>CounterfactualExplanations.jl</code></a></li>
+  </ul></li>
+  <li><a href="#limitations-and-future-work" id="toc-limitations-and-future-work" class="nav-link" data-scroll-target="#limitations-and-future-work">Limitations and Future Work</a></li>
+  <li><a href="#github-prs-and-issues" id="toc-github-prs-and-issues" class="nav-link" data-scroll-target="#github-prs-and-issues">Github PRs and Issues</a></li>
+  </ul></li>
+  <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/JuliaTrustworthyAI/.github/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">When Causality meets Recourse</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<p class="subtitle lead">Counterfactual Explanations through Structural Causal Models</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">counterfactuals</div>
+    <div class="quarto-category">explainable AI</div>
+    <div class="quarto-category">causality</div>
+    <div class="quarto-category">Julia</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    <p>This post introduces a new tool in CounterfactualExplanations.jl, enhancing the package with causal reasoning to generate counterfactual explanations.</p>
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p><a href="https://www.linkedin.com/in/jorgelwyz/">Jorge Luiz Franco</a> </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">September 17, 2024</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>In recent years, the need for interpretable and explainable AI has surged, particularly in high-stakes domains. Counterfactual explanations provide a means to understand how changes to input features could alter the outcomes of machine learning models. This blog post presents a new tool in the <a href="https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl">CounterfactualExplanations.jl</a> package, developed during my JSoC (Julia Summer of Code) project, which incorporates causal reasoning into counterfactual generation.</p>
+<section id="testimonial" class="level4">
+<h4 class="anchored" data-anchor-id="testimonial">Testimonial</h4>
+<blockquote class="blockquote">
+<p>This was an amazing experience, not just experience to contribute to two repositories simultaneously, but also to work with the mantainers of these repos. I learned a lot about the Julia language and the Julia community. This was possible because of the mentorship of Patrick Altmeyer (CounterfactualExplanations) and Moritz Schauer (CausalInference), who guided me throughout the project and are amazing researchers.</p>
+</blockquote>
+</section>
+</section>
+<section id="project-overview" class="level1">
+<h1>Project Overview</h1>
+<p>This project aimed to enhance the CounterfactualExplanations.jl package by infusing it with a robust mathematical foundation for minimal algorithmic recourse, based on the principles of causal reasoning <span class="citation" data-cites="karimi2021algorithmic">(<a href="#ref-karimi2021algorithmic" role="doc-biblioref">Karimi, Schölkopf, and Valera 2021</a>)</span>.</p>
+<section id="key-contributions" class="level2">
+<h2 class="anchored" data-anchor-id="key-contributions">Key Contributions</h2>
+<p>During the project, I contributed to two key repositories:</p>
+<ol type="1">
+<li><p><a href="https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl">CounterfactualExplanations.jl</a>: Developed a new tool for generating counterfactual explanations using causal information. This allows users to generate counterfactuals through causal interventions rather than minimal perturbations, ultimately providing more meaningful insights.</p></li>
+<li><p><a href="https://github.com/mschauer/CausalInference.jl">CausalInference.jl</a>: Implemented a Structural Causal Model (SCM) structure that extracts information from data, laying the groundwork for the causal reasoning capabilities in <a href="https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl">CounterfactualExplanations.jl</a>.</p></li>
+</ol>
+</section>
+<section id="sec-background" class="level2">
+<h2 class="anchored" data-anchor-id="sec-background">Theoretical Background</h2>
+<p>In this project, we developed a framework for the MINT Generator: a counterfactual generator based on the Recourse through Minimal Intervention (MINT) method proposed by <span class="citation" data-cites="karimi2021algorithmic">Karimi, Schölkopf, and Valera (<a href="#ref-karimi2021algorithmic" role="doc-biblioref">2021</a>)</span>.</p>
+<p>The MINT Generator incorporates causal reasoning to achieve algorithmic recourse through minimal interventions. In this sense, the main idea is that just perturbating a black-box model without taking into account the causal relations in the data can lead to misleading recommendations. Here we now shift to a perspective where every feature pertubation is an intervetion in the causal graph of the problem. Leveraging causal relationships, interventions on causal parents automatially lead to potentially useful changes in their causal children. The generator utilizes a Structural Causal Model(SCM) to encode the variables in a way that causal effects are propagated and uses a generic gradient-based generator to create the search path. This has the benefit that any existing gradient-based generator, such as ECCo <span class="citation" data-cites="altmeyer2024faithful">(<a href="#ref-altmeyer2024faithful" role="doc-biblioref">Altmeyer et al. 2024</a>)</span>, Watcher <span class="citation" data-cites="wachter2017counterfactual">(<a href="#ref-wachter2017counterfactual" role="doc-biblioref">Wachter, Mittelstadt, and Russell 2017</a>)</span>, DiCE <span class="citation" data-cites="mothilal2020explaining">(<a href="#ref-mothilal2020explaining" role="doc-biblioref">Mothilal, Sharma, and Tan 2020</a>)</span>, and more, can be used with the MINT SCM encoder to generate counterfactual through causal interventions.</p>
+<p>The MINT algorithm minimizes a loss function that combines the causal constraints of the SCM and the distance between the generated counterfactual and the original input. Since we want a gradient-based generator, we need to pass the constrained optimizaiton problem into an unconstrained one and we do this by using the Lagrangian. Initially, as defined in <span class="citation" data-cites="karimi2021algorithmic">(<a href="#ref-karimi2021algorithmic" role="doc-biblioref">Karimi, Schölkopf, and Valera 2021</a>)</span>, we aim to aim to find the minimal cost set of actions <span class="math inline">\(A\)</span> (in the form of structural interventions) that results in a counterfactual instance yielding the favorable output from <span class="math inline">\(h\)</span>,</p>
+<p><span class="math display">\[
+\begin{aligned}
+A^* \in \arg\min_A \text{cost}(A; \mathbf{x}_F)\\
+\textrm{s.t.} \quad  h(\mathbf{x}_{SCF}) \neq h(\mathbf{x}_F) \; \; \text{,}\\
+\end{aligned}
+\]</span></p>
+<p>where <span class="math inline">\(\mathbf{x}_F\)</span> is the original input, <span class="math inline">\(\mathbf{x}_{SCF}\)</span> is the counterfactual instance, and <span class="math inline">\(h\)</span> is the black-box model. We use the <span class="math inline">\(\mathbf{x}_{SCF}\)</span> terminology because the counterfactual is derived from the SCM,</p>
+<p><span class="math display">\[
+x_{SCF_i} =
+\begin{cases}
+x_{F_i} + \delta_i, &amp; \text{if } i \in I \\
+x_{F_i} + f_i(\text{pa}_{SCF_i}) - f_i(\text{pa}_{F_i}), &amp; \text{if } i \notin I  \; \; \text{,}
+\end{cases}
+\]</span></p>
+<p>where <span class="math inline">\(I\)</span> is the set of intervened upon variables, <span class="math inline">\(f_i\)</span> is the function that generates the value of the variable <span class="math inline">\(i\)</span> given its parents, and <span class="math inline">\(\text{pa}_{SCF_i}\)</span> and <span class="math inline">\(\text{pa}_{F_i}\)</span> are the parents of the variable <span class="math inline">\(i\)</span> in the counterfactual and original instance, respectively. This closed formula for the decision variable <span class="math inline">\(\mathbf{x}_{SCF}\)</span> is what makes possible to use a gradient-based generator, since with it the lagrangian is differentiable,</p>
+<p><span class="math display">\[
+\mathcal{L}(A ; \lambda) = \text{cost}(A; \mathbf{x}_F) + \lambda \left(h(\mathbf{x}_{SCF}) - h(\mathbf{x}_F) \right) \; \; \text{,}
+\]</span></p>
+<p>or in simple terms and more standard, since <span class="math inline">\(\lambda\)</span> is constant,</p>
+<p><span class="math display">\[
+\mathcal{L_{\texttt{MINT}}}(\mathbf{x}_{SCF}) = \lambda \text{cost}(\mathbf{x}_{SCF}; \mathbf{x}_F) + \text{yloss}(\mathbf{x}_{SCF},y^*) \; \; \text{,}
+\]</span></p>
+<p>where <span class="math inline">\(y^*\)</span> is clearly <span class="math inline">\(h(x_F)\)</span> and <span class="math inline">\(\text{yloss}\)</span> is :</p>
+<p><span class="math display">\[
+\text{yloss}(\mathbf{x}_{SCF}, y^*) = h \left(\left\{ x_{F_i} + \delta_i [i \in I] + \left(f_i(\text{pa}_{SCF_i}) - f_i(\text{pa}_{F_i}) \right) [i \notin I] \right\}_{i=1}^n \right) - y^* \; \; \text{.}
+\]</span></p>
+</section>
+<section id="implementation" class="level2">
+<h2 class="anchored" data-anchor-id="implementation">Implementation</h2>
+<p>As mentioned above, this project involved contributions to both <a href="https://github.com/mschauer/CausalInference.jl">CausalInference.jl</a> and <a href="https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl">CounterfactualExplanations.jl</a>. In this section, we will cover both of these. Before we begin, we load all necessary dependencies below:</p>
+<div id="2" class="cell" data-execution_count="1">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1"></a><span class="im">using</span> <span class="bu">CausalInference</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="im">using</span> <span class="bu">CounterfactualExplanations</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="im">using</span> <span class="bu">CounterfactualExplanations.GenerativeModels</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="im">using</span> <span class="bu">Graphs</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="im">using</span> <span class="bu">GraphRecipes</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="im">using</span> <span class="bu">MultivariateStats</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="im">using</span> <span class="bu">Plots</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a><span class="im">using</span> <span class="bu">Random</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">1</span>)</span>
+<span id="cb1-10"><a href="#cb1-10"></a><span class="im">using</span> <span class="bu">StatsBase</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="causal-inference" class="level3">
+<h3 class="anchored" data-anchor-id="causal-inference">Causal Inference</h3>
+<p>In terms of implementation, we need to capture the causal relations from the data, which is where <a href="https://github.com/mschauer/CausalInference.jl">CausalInference.jl</a> comes in. However, before the project, the package did not have a SCM structure, in the sense that the methods just captured the topological Directed Acyclic Graph (DAG) that showed the causality governing the data. There was previously no way to transform graphs into structural causal models.</p>
+<p>Consider the following synthetic data:</p>
+<div id="4" class="cell" data-execution_count="1">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1"></a>N <span class="op">=</span> <span class="fl">2000</span> <span class="co"># number of data points</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a></span>
+<span id="cb2-3"><a href="#cb2-3"></a>x <span class="op">=</span> <span class="fu">randn</span>(N)</span>
+<span id="cb2-4"><a href="#cb2-4"></a>v <span class="op">=</span> x <span class="op">+</span> <span class="fu">randn</span>(N)<span class="op">*</span><span class="fl">0.25</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a>w <span class="op">=</span> x <span class="op">+</span> <span class="fu">randn</span>(N)<span class="op">*</span><span class="fl">0.25</span></span>
+<span id="cb2-6"><a href="#cb2-6"></a>z <span class="op">=</span> v <span class="op">+</span> w <span class="op">+</span> <span class="fu">randn</span>(N)<span class="op">*</span><span class="fl">0.25</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a>s <span class="op">=</span> z <span class="op">+</span> <span class="fu">randn</span>(N)<span class="op">*</span><span class="fl">0.25</span></span>
+<span id="cb2-8"><a href="#cb2-8"></a>df <span class="op">=</span> (x<span class="op">=</span>x, v<span class="op">=</span>v, w<span class="op">=</span>w, z<span class="op">=</span>z, s<span class="op">=</span>s)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Using <a href="https://github.com/mschauer/CausalInference.jl">CausalInference.jl</a>, we can use the <code>ges</code> method for the causal discovery <span class="citation" data-cites="chickering2003optimal">(<a href="#ref-chickering2003optimal" role="doc-biblioref">Chickering 2003</a>)</span> and plot the resulting DAG <a href="#fig-dag" class="quarto-xref">Figure&nbsp;1</a>:</p>
+<div id="cell-fig-dag" class="cell" data-execution_count="1">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1"></a>est_g, score <span class="op">=</span> <span class="fu">ges</span>(df; penalty<span class="op">=</span><span class="fl">1.0</span>, parallel<span class="op">=</span><span class="cn">true</span>)</span>
+<span id="cb3-2"><a href="#cb3-2"></a></span>
+<span id="cb3-3"><a href="#cb3-3"></a>plt <span class="op">=</span> <span class="fu">graphplot</span>(<span class="fu">pdag2dag!</span>(est_g), names<span class="op">=</span> [<span class="fu">String</span>(k) for k <span class="kw">in</span> <span class="fu">keys</span>(df)], size<span class="op">=</span>(<span class="fl">500</span>,<span class="fl">500</span>), nodesize<span class="op">=</span><span class="fl">0.1</span>, fontsize<span class="op">=</span><span class="fl">25</span>)</span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="fu">savefig</span>(plt, <span class="st">"www/intro.png"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="fu">display</span>(plt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>┌ Warning: Only one thread available
+└ @ CausalInference ~/.julia/packages/CausalInference/ozcj8/src/ges.jl:52</code></pre>
+</div>
+<div id="fig-dag" class="cell-output cell-output-display quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-dag-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<!--?xml version="1.0" encoding="utf-8"?-->
+<svg xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" width="500" height="500" viewbox="0 0 2000 2000">
+<defs>
+  <clippath id="clip110">
+    <rect x="0" y="0" width="2000" height="2000"></rect>
+  </clippath>
+</defs>
+<path clip-path="url(#clip110)" d="M0 2000 L2000 2000 L2000 0 L0 0  Z" fill="#ffffff" fill-rule="evenodd" fill-opacity="1"></path>
+<defs>
+  <clippath id="clip111">
+    <rect x="400" y="199" width="1401" height="1401"></rect>
+  </clippath>
+</defs>
+<path clip-path="url(#clip110)" d="M47.2441 1952.76 L1952.76 1952.76 L1952.76 47.2441 L47.2441 47.2441  Z" fill="#ffffff" fill-rule="evenodd" fill-opacity="1"></path>
+<defs>
+  <clippath id="clip112">
+    <rect x="47" y="47" width="1907" height="1907"></rect>
+  </clippath>
+</defs>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="1550.3,1680.54 1557.05,1666.27 1563.77,1652 1570.47,1637.76 1577.13,1623.55 1583.73,1609.38 1590.27,1595.26 1596.73,1581.21 1603.09,1567.22 1609.34,1553.32 1615.47,1539.51 1621.46,1525.81 1627.31,1512.22 1632.99,1498.75 1638.5,1485.42 1643.81,1472.24 1648.92,1459.21 1653.82,1446.34 1658.48,1433.65 1662.9,1421.15 1667.07,1408.84 1670.96,1396.74 1674.56,1384.86 1677.87,1373.21 1680.87,1361.79 1683.54,1350.62 1685.88,1339.7 1687.92,1329.02 1689.65,1318.57 1691.1,1308.33 1692.28,1298.3 1693.2,1288.47 1693.88,1278.82 1694.32,1269.35 1694.55,1260.05 1694.58,1250.9 1694.41,1241.89 1694.07,1233.02 1693.57,1224.28 1692.91,1215.64 1692.12,1207.12 1691.21,1198.68 1690.19,1190.33 1689.08,1182.05 1687.88,1173.83 1686.62,1165.66 1685.3,1157.54 1683.94,1149.45 1682.56,1141.37 1681.16,1133.31 "></polyline>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="1671.51,1165.43 1681.16,1133.31 1701.07,1160.3 "></polyline>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="1681.16,1133.31 1682.56,1141.37 "></polyline>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="675.164,1531.36 694.981,1530.71 714.782,1530.08 734.553,1529.47 754.28,1528.88 773.947,1528.33 793.539,1527.83 813.042,1527.39 832.441,1527.01 851.72,1526.71 870.865,1526.5 889.861,1526.38 908.693,1526.36 927.346,1526.46 945.805,1526.68 964.055,1527.04 982.082,1527.53 999.87,1528.18 1017.4,1528.99 1034.67,1529.98 1051.65,1531.14 1068.34,1532.49 1084.71,1534.04 1100.75,1535.81 1116.45,1537.79 1131.8,1539.99 1146.78,1542.43 1161.43,1545.08 1175.74,1547.95 1189.74,1551.01 1203.45,1554.26 1216.87,1557.7 1230.02,1561.3 1242.92,1565.07 1255.58,1568.98 1268.01,1573.04 1280.24,1577.24 1292.27,1581.56 1304.13,1585.99 1315.82,1590.52 1327.36,1595.15 1338.77,1599.87 1350.05,1604.66 1361.24,1609.52 1372.33,1614.44 1383.35,1619.4 1394.31,1624.4 1405.23,1629.43 1416.11,1634.48 1426.98,1639.54 "></polyline>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="1406.11,1613.28 1426.98,1639.54 1393.45,1640.48 "></polyline>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="1426.98,1639.54 1416.11,1634.48 "></polyline>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="675.164,1531.36 681.873,1517.04 688.568,1502.73 695.235,1488.44 701.862,1474.19 708.435,1459.97 714.941,1445.81 721.365,1431.71 727.694,1417.68 733.914,1403.74 740.013,1389.88 745.977,1376.14 751.791,1362.5 757.443,1349 762.919,1335.62 768.205,1322.4 773.288,1309.32 778.154,1296.42 782.79,1283.69 787.182,1271.15 791.316,1258.8 795.18,1246.67 798.76,1234.75 802.041,1223.06 805.011,1211.61 807.656,1200.4 809.977,1189.45 811.986,1178.74 813.697,1168.25 815.124,1157.98 816.28,1147.92 817.178,1138.06 817.833,1128.38 818.257,1118.88 818.465,1109.55 818.47,1100.38 818.284,1091.34 817.923,1082.45 817.399,1073.68 816.727,1065.02 815.918,1056.46 814.988,1048 813.95,1039.63 812.816,1031.32 811.602,1023.08 810.319,1014.89 808.983,1006.74 807.606,998.626 806.201,990.529 804.784,982.443 "></polyline>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="795.19,1014.58 804.784,982.443 824.739,1009.4 "></polyline>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="804.784,982.443 806.201,990.529 "></polyline>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="1680.54,1006.01 1660.69,1006.61 1640.85,1007.21 1621.04,1007.79 1601.28,1008.34 1581.57,1008.85 1561.95,1009.31 1542.41,1009.72 1522.97,1010.06 1503.66,1010.32 1484.47,1010.5 1465.44,1010.59 1446.58,1010.56 1427.89,1010.43 1409.39,1010.17 1391.11,1009.78 1373.04,1009.25 1355.22,1008.57 1337.65,1007.72 1320.35,1006.71 1303.33,1005.51 1286.62,1004.12 1270.21,1002.54 1254.13,1000.74 1238.4,998.733 1223.02,996.494 1208.01,994.027 1193.33,991.343 1178.98,988.45 1164.95,985.357 1151.22,982.075 1137.76,978.613 1124.58,974.98 1111.65,971.186 1098.96,967.24 1086.5,963.151 1074.24,958.93 1062.18,954.586 1050.29,950.128 1038.57,945.565 1027,940.908 1015.56,936.165 1004.25,931.347 993.034,926.462 981.911,921.52 970.863,916.531 959.874,911.503 948.93,906.448 938.016,901.373 927.117,896.289 "></polyline>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="947.963,922.565 927.117,896.289 960.646,895.377 "></polyline>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="927.117,896.289 938.016,901.373 "></polyline>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="803.878,855.14 790.133,845.742 776.406,836.346 762.715,826.958 749.078,817.579 735.513,808.213 722.038,798.864 708.671,789.535 695.43,780.228 682.333,770.948 669.399,761.698 656.644,752.481 644.088,743.3 631.748,734.159 619.642,725.06 607.788,716.008 596.204,707.005 584.908,698.055 573.918,689.161 563.253,680.327 552.93,671.555 542.967,662.849 533.382,654.213 524.193,645.649 515.419,637.16 507.076,628.751 499.165,620.421 491.668,612.167 484.567,603.985 477.844,595.873 471.481,587.827 465.461,579.843 459.765,571.919 454.375,564.05 449.273,556.235 444.441,548.469 439.861,540.749 435.516,533.072 431.387,525.435 427.455,517.834 423.704,510.266 420.115,502.728 416.67,495.216 413.351,487.727 410.14,480.258 407.02,472.805 403.971,465.366 400.976,457.937 398.017,450.514 395.077,443.094 "></polyline>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="392.186,476.51 395.077,443.094 420.075,465.456 "></polyline>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="395.077,443.094 398.017,450.514 "></polyline>
+<path clip-path="url(#clip112)" d="M1697.3 1680.54 L1623.8 1553.24 L1476.81 1553.24 L1403.31 1680.54 L1476.81 1807.84 L1623.8 1807.84 L1697.3 1680.54 L1697.3 1680.54  Z" fill="#009af9" fill-rule="evenodd" fill-opacity="1"></path>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="1697.3,1680.54 1623.8,1553.24 1476.81,1553.24 1403.31,1680.54 1476.81,1807.84 1623.8,1807.84 1697.3,1680.54 "></polyline>
+<path clip-path="url(#clip112)" d="M822.161 1531.36 L748.663 1404.05 L601.666 1404.05 L528.168 1531.36 L601.666 1658.66 L748.663 1658.66 L822.161 1531.36 L822.161 1531.36  Z" fill="#009af9" fill-rule="evenodd" fill-opacity="1"></path>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="822.161,1531.36 748.663,1404.05 601.666,1404.05 528.168,1531.36 601.666,1658.66 748.663,1658.66 822.161,1531.36 "></polyline>
+<path clip-path="url(#clip112)" d="M1827.54 1006.01 L1754.04 878.705 L1607.04 878.705 L1533.54 1006.01 L1607.04 1133.31 L1754.04 1133.31 L1827.54 1006.01 L1827.54 1006.01  Z" fill="#009af9" fill-rule="evenodd" fill-opacity="1"></path>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="1827.54,1006.01 1754.04,878.705 1607.04,878.705 1533.54,1006.01 1607.04,1133.31 1754.04,1133.31 1827.54,1006.01 "></polyline>
+<path clip-path="url(#clip112)" d="M950.874 855.14 L877.376 727.838 L730.379 727.838 L656.881 855.14 L730.379 982.443 L877.376 982.443 L950.874 855.14 L950.874 855.14  Z" fill="#009af9" fill-rule="evenodd" fill-opacity="1"></path>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="950.874,855.14 877.376,727.838 730.379,727.838 656.881,855.14 730.379,982.443 877.376,982.443 950.874,855.14 "></polyline>
+<path clip-path="url(#clip112)" d="M466.457 319.46 L392.958 192.157 L245.962 192.157 L172.463 319.46 L245.962 446.763 L392.958 446.763 L466.457 319.46 L466.457 319.46  Z" fill="#009af9" fill-rule="evenodd" fill-opacity="1"></path>
+<polyline clip-path="url(#clip112)" style="stroke:#000000; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="466.457,319.46 392.958,192.157 245.962,192.157 172.463,319.46 245.962,446.763 392.958,446.763 466.457,319.46 "></polyline>
+<circle clip-path="url(#clip112)" style="fill:#009af9; stroke:none; fill-opacity:0" cx="1550.3" cy="1680.54" r="2"></circle>
+<circle clip-path="url(#clip112)" style="fill:#009af9; stroke:none; fill-opacity:0" cx="675.164" cy="1531.36" r="2"></circle>
+<circle clip-path="url(#clip112)" style="fill:#009af9; stroke:none; fill-opacity:0" cx="1680.54" cy="1006.01" r="2"></circle>
+<circle clip-path="url(#clip112)" style="fill:#009af9; stroke:none; fill-opacity:0" cx="803.878" cy="855.14" r="2"></circle>
+<circle clip-path="url(#clip112)" style="fill:#009af9; stroke:none; fill-opacity:0" cx="319.46" cy="319.46" r="2"></circle>
+<path clip-path="url(#clip110)" d="M1588.07 1653.52 L1558.77 1692.95 L1589.58 1734.54 L1573.89 1734.54 L1550.3 1702.71 L1526.72 1734.54 L1511.03 1734.54 L1542.49 1692.15 L1513.7 1653.52 L1529.4 1653.52 L1550.88 1682.38 L1572.37 1653.52 L1588.07 1653.52 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1"></path><path clip-path="url(#clip110)" d="M635.74 1504.34 L649.846 1504.34 L675.164 1572.33 L700.483 1504.34 L714.588 1504.34 L684.207 1585.36 L666.122 1585.36 L635.74 1504.34 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1"></path><path clip-path="url(#clip110)" d="M1626.18 978.99 L1639.49 978.99 L1656.13 1042.21 L1672.69 978.99 L1688.39 978.99 L1705.03 1042.21 L1721.59 978.99 L1734.9 978.99 L1713.71 1060.01 L1698.01 1060.01 L1680.58 993.602 L1663.07 1060.01 L1647.37 1060.01 L1626.18 978.99 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1"></path><path clip-path="url(#clip110)" d="M773.17 828.122 L836.393 828.122 L836.393 840.275 L786.336 898.507 L836.393 898.507 L836.393 909.14 L771.362 909.14 L771.362 896.988 L821.419 838.756 L773.17 838.756 L773.17 828.122 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1"></path><path clip-path="url(#clip110)" d="M346.08 294.829 L346.08 307.416 Q340.438 304.522 334.362 303.076 Q328.285 301.629 321.775 301.629 Q311.865 301.629 306.873 304.667 Q301.954 307.705 301.954 313.782 Q301.954 318.411 305.499 321.088 Q309.043 323.692 319.749 326.079 L324.307 327.092 Q338.485 330.13 344.417 335.7 Q350.421 341.198 350.421 351.108 Q350.421 362.392 341.451 368.975 Q332.553 375.558 316.928 375.558 Q310.418 375.558 303.329 374.256 Q296.312 373.026 288.5 370.494 L288.5 356.75 Q295.878 360.584 303.039 362.537 Q310.201 364.418 317.218 364.418 Q326.621 364.418 331.685 361.235 Q336.749 357.98 336.749 352.12 Q336.749 346.695 333.06 343.802 Q329.443 340.908 317.073 338.232 L312.443 337.147 Q300.074 334.542 294.576 329.189 Q289.078 323.764 289.078 314.36 Q289.078 302.931 297.18 296.71 Q305.282 290.489 320.183 290.489 Q327.562 290.489 334.072 291.574 Q340.583 292.659 346.08 294.829 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1"></path></svg>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dag-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: A simple example of a causal graph.
+</figcaption>
+</figure>
+</div>
+</div>
+<p>Given the DAG in <a href="#fig-dag" class="quarto-xref">Figure&nbsp;1</a>, our goal is to recover the equations that define the underlying causal relations. The SCM is the union of the DAG and these causal equations: formally, it can be represented as a tuple <span class="math inline">\((G, \mathbf{f})\)</span>, where <span class="math inline">\(G\)</span> is the DAG and <span class="math inline">\(\mathbf{f}\)</span> is the set of functions that generates the value of each variable given its parents.</p>
+<p>Our solution for constructing the structural causal equations was to assume that the data was generated by a linear model, which in this simple synthetic example actually corresponds to the ground truth. For the DAG provided in the code example we derive</p>
+<p><span class="math display">\[ v = \mathcal{b}_v \]</span></p>
+<p><span class="math display">\[ x = \mathcal{a}_{v \to x} v + \mathcal{b}_x \]</span></p>
+<p><span class="math display">\[ w = \mathcal{a}_{x \to w} x + \mathcal{b}_w \]</span></p>
+<p><span class="math display">\[ z = \mathcal{a}_{v \to z} v+ \mathcal{a}_{w \to z} w + \mathcal{b}_z \]</span></p>
+<p><span class="math display">\[ s = \mathcal{a}_{z \to s} z + \mathcal{b}_s \]</span></p>
+<p>and that’s the tricky thing, as we can see these causal equations are different than the ones that generated the data, but they are the ones that respect the causal system obtained from the obtained DAG. Here <span class="math inline">\(\mathcal{b}_i\)</span> and <span class="math inline">\(\mathcal{a}_{i \to j}\)</span> are the intercept term and the coefficient obtained from the linear regression, respectively. To correctly solve the linear regression respecting the dependencies of the causal graph, we use <code>topological_sort_by_dfs</code> from <code>Graphs.jl</code>.</p>
+<p>Now, with the SCM structure at hand, we see that the representation could be a struct containing the DAG and the coefficients/intercepts of the causal equations, which corresponds exactly the tuple <span class="math inline">\((G, \mathbf{f})\)</span> that we defined. A technical difficulty is that since we aim for gradient-based counterfactual generation, we need to define a differentiable function that takes the SCM and applies the encoded causal relationships to all variables. That is where the <code>causal_effects</code> matrix comes to the rescue.</p>
+<p>Let the factual vector of features be denoted as:</p>
+<p><span class="math display">\[
+\mathbf{x}_F =
+\begin{bmatrix}
+x_{F_1} \\
+x_{F_2} \\
+x_{F_3} \\
+\vdots \\
+x_{F_n}
+\end{bmatrix}
+\]</span></p>
+<p>Let the <code>causal_effects</code> matrix be:</p>
+<p><span class="math display">\[
+\mathbf{C} =
+\begin{bmatrix}
+a_{11} &amp; a_{12} &amp; \cdots &amp; a_{1n} &amp; b_1 \\
+a_{21} &amp; a_{22} &amp; \cdots &amp; a_{2n} &amp; b_2 \\
+a_{31} &amp; a_{32} &amp; \cdots &amp; a_{3n} &amp; b_3 \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots &amp; \vdots \\
+a_{n1} &amp; a_{n2} &amp; \cdots &amp; a_{nn} &amp; b_n \\
+\end{bmatrix}
+\]</span></p>
+<p>Here, <span class="math inline">\(a_{ij}\)</span> represents the coefficient from the causal effect of <span class="math inline">\(x_{F_j}\)</span> on <span class="math inline">\(x_{F_i}\)</span>, and <span class="math inline">\(b_i\)</span> represents the intercept term for the variable <span class="math inline">\(x_{F_i}\)</span>.</p>
+<p>The matrix multiplication of the <code>causal_effects</code> matrix with the factual vector (excluding the bias term) is given by:</p>
+<p><span class="math display">\[
+\mathbf{C}_{:, 1:n} \cdot \mathbf{x}_F =
+\begin{bmatrix}
+a_{11} &amp; a_{12} &amp; \cdots &amp; a_{1n} \\
+a_{21} &amp; a_{22} &amp; \cdots &amp; a_{2n} \\
+a_{31} &amp; a_{32} &amp; \cdots &amp; a_{3n} \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+a_{n1} &amp; a_{n2} &amp; \cdots &amp; a_{nn}
+\end{bmatrix}
+\begin{bmatrix}
+x_{F_1} \\
+x_{F_2} \\
+x_{F_3} \\
+\vdots \\
+x_{F_n}
+\end{bmatrix}
+\]</span></p>
+<p>Finally, we add the bias term:</p>
+<p><span class="math display">\[
+\mathbf{x}_{SCF} = \mathbf{C}_{:, 1:n} \cdot \mathbf{x}_F +
+\begin{bmatrix}
+b_1 \\
+b_2 \\
+b_3 \\
+\vdots \\
+b_n
+\end{bmatrix}
+\]</span></p>
+<p>In expanded form:</p>
+<p><span class="math display">\[
+\mathbf{x}_{SCF_i} = a_{i1} x_{F_1} + a_{i2} x_{F_2} + \cdots + a_{in} x_{F_n} + b_i, \quad \forall i = 1, 2, \dots, n
+\]</span></p>
+<p>This equation shows how each counterfactual variable <span class="math inline">\(x_{SCF_i}\)</span> is generated as a linear combination of the factual inputs <span class="math inline">\(x_{F_j}\)</span> based on the causal effects matrix, with an intercept term <span class="math inline">\(b_i\)</span> added for each variable.</p>
+<p>One can note that the <code>orphan</code> nodes, that is, the nodes that do not have parents in the DAG, are going to be equal to the intercept term <span class="math inline">\(\mathcal{b}_\hat{o}\)</span>. The intuition behind this is that when we do the linear regression, variables that have no causal parents are just equal to the unconditional mean of the variable, i.e, we get <span class="math inline">\(x_{SCF_\hat{o}} = \mathbb{E}(x_\hat{o})\)</span>. Because of this, in some cases a better understanding of the regression is needed, so the residuals are also part of the SCM structure,</p>
+<div id="8" class="cell" data-execution_count="0">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">struct</span> SCM</span>
+<span id="cb5-2"><a href="#cb5-2"></a>    variables<span class="op">::</span><span class="dt">Vector{String}</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a>    coefficients<span class="op">::</span><span class="dt">Vector{Vector{Float64}}</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a>    residuals<span class="op">::</span><span class="dt">Vector{Vector{Float64}}</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a>    dag<span class="op">::</span><span class="dt">DiGraph</span></span>
+<span id="cb5-6"><a href="#cb5-6"></a>    causal_effects<span class="op">::</span><span class="dt">Matrix{Float64}</span></span>
+<span id="cb5-7"><a href="#cb5-7"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="counterfactualexplanations.jl" class="level3">
+<h3 class="anchored" data-anchor-id="counterfactualexplanations.jl"><code>CounterfactualExplanations.jl</code></h3>
+<p>Next, we will dive to go into the optimization problem previously described in <a href="#sec-background" class="quarto-xref">Section&nbsp;2.2</a>. Recall that we seek to minimize the Lagrangian function we defined where we now have a differentiable function. The standard way to implement generators in <code>CounterfactualExplanations.jl</code> is to use autodifferentiation to solve this Lagrangian. The definition of <span class="math inline">\(\mathcal{L_{\texttt{MINT}}}\)</span> above is just an unconstrained objective function, much like with any other gradient-based generator in the package, so the optimization is straightforward (see <a href="https://juliatrustworthyai.github.io/CounterfactualExplanations.jl/v1.2/">docs</a> for more details on gradient-based generators).</p>
+<p>A challenge was to find a way to pass the <span class="math inline">\(x_F\)</span> into the <span class="math inline">\(x_{SCF}\)</span>. For the time being, we have decided to extend an existing feature of the package, namely <code>InputTransformer</code>s: they can be used to transform features, for example, through standardization. All existing <code>InputTransformer</code>s work under the premise of encoding features into some latent representation, searching counterfactuals in that latent space, and finally decoding latent features back into the original feature space. In some way, this is also what we are doing here: we are passing our factual to the “latent” causal space of the counterfactual.</p>
+<p>Our first step is to create a new kind of <code>InputTransformer</code> for the SCM:</p>
+<div id="10" class="cell" data-execution_count="1">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">const</span> TypedInputTransformer <span class="op">=</span> <span class="dt">Union</span>{</span>
+<span id="cb6-2"><a href="#cb6-2"></a>    <span class="dt">Type</span>{<span class="op">&lt;:</span><span class="dt">StatsBase.AbstractDataTransform</span>},</span>
+<span id="cb6-3"><a href="#cb6-3"></a>    <span class="dt">Type</span>{<span class="op">&lt;:</span><span class="dt">MultivariateStats.AbstractDimensionalityReduction</span>},</span>
+<span id="cb6-4"><a href="#cb6-4"></a>    <span class="dt">Type</span>{<span class="op">&lt;:</span><span class="dt">GenerativeModels.AbstractGenerativeModel</span>},</span>
+<span id="cb6-5"><a href="#cb6-5"></a>    <span class="dt">Type</span>{<span class="op">&lt;:</span><span class="dt">CausalInference.SCM</span>} <span class="co"># The SCM transfromer</span></span>
+<span id="cb6-6"><a href="#cb6-6"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Next, we need a way to actually apply train this transformer. This is done by “overloading” the <code>fit_transformer</code> method,</p>
+<div id="12" class="cell" data-execution_count="1">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">function</span> <span class="fu">fit_transformer</span>(</span>
+<span id="cb7-2"><a href="#cb7-2"></a>    data<span class="op">::</span><span class="dt">CounterfactualData</span>, input_encoder<span class="op">::</span><span class="dt">Type{&lt;:CausalInference.SCM}</span>; kwargs<span class="op">...</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a>)</span>
+<span id="cb7-4"><a href="#cb7-4"></a>    t <span class="op">=</span> Tables.<span class="fu">table</span>(<span class="fu">transpose</span>(data.X))</span>
+<span id="cb7-5"><a href="#cb7-5"></a>    est_g, score <span class="op">=</span> CausalInference.<span class="fu">ges</span>(t; penalty<span class="op">=</span><span class="fl">1.0</span>, parallel<span class="op">=</span><span class="cn">true</span>)</span>
+<span id="cb7-6"><a href="#cb7-6"></a>    est_dag <span class="op">=</span> CausalInference.<span class="fu">pdag2dag!</span>(est_g)</span>
+<span id="cb7-7"><a href="#cb7-7"></a>    scm <span class="op">=</span> CausalInference.<span class="fu">estimate_equations</span>(t, est_dag)</span>
+<span id="cb7-8"><a href="#cb7-8"></a>    <span class="cf">return</span> scm</span>
+<span id="cb7-9"><a href="#cb7-9"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>which takes an input <code>data</code>set and then relies on <a href="https://github.com/mschauer/CausalInference.jl">CausalInference.jl</a> for causal discovery.</p>
+<p>We are getting there … but one implementation challenge is still left: how can we use the learned SCM during the counterfactual search?</p>
+<p>Our idea was simple: during each gradient-step, just apply the SCM to all features of the counterfactual. Implementation-wise, this boiled down to overloading the <code>decode_array</code> function, which handles the actual decoding step for all <code>InputTransformers</code>:</p>
+<div id="14" class="cell" data-execution_count="1">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">function</span> <span class="fu">decode_array</span>(data<span class="op">::</span><span class="dt">CounterfactualData</span>, dt<span class="op">::</span><span class="dt">CausalInference.SCM</span>, x<span class="op">::</span><span class="dt">AbstractArray</span>)</span>
+<span id="cb8-2"><a href="#cb8-2"></a>    <span class="cf">return</span> <span class="fu">run_causal_effects</span>(dt, x)</span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="kw">end</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="kw">function</span> <span class="fu">run_causal_effects</span>(scm<span class="op">::</span><span class="dt">CausalInference.SCM</span>, x<span class="op">::</span><span class="dt">AbstractArray</span>)</span>
+<span id="cb8-6"><a href="#cb8-6"></a>    <span class="cf">return</span> scm.causal_effects[<span class="op">:</span>, <span class="fl">1</span><span class="op">:</span>(<span class="kw">end</span> <span class="op">-</span> <span class="fl">1</span>)] <span class="op">*</span> x <span class="op">+</span> scm.causal_effects[<span class="op">:</span>, <span class="kw">end</span>] <span class="co"># bias</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Here we are! Using this approach, gradient computations explicitly take the causal graph into account. We can now rely on standard workflows for gradient-based generators to solve a different minimization problem that incorporate causal effects.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Concrete Generator Type
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>One piece that is still missing here is to implement a concrete generator type of the MINT Generator (<a href="https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/issues/466">#466</a>). That will make it easier for users to use the MINT Generator in the same way as all of our other counterfactual generators. This step has been postponed, because it hinges on an a larger development task (<a href="https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/issues/435">#435</a>).</p>
+</div>
+</div>
+</section>
+</section>
+<section id="limitations-and-future-work" class="level2">
+<h2 class="anchored" data-anchor-id="limitations-and-future-work">Limitations and Future Work</h2>
+<p>Altough the range of lines of code was not tremendous, the hard work was. The merged code does not show every research and development I was guided during this time by the mentors. For example, initially we were trying a different approach to work with differentiation inside the <code>CounterfactualExplanations.jl</code> package, where the code always broke 😅. But, without this obstacle, we could not have in mind a possible future work where the <code>run_causal_effects</code> function could be more flexible. For example, as we said, the variables without causal parents are been assigned just to the unconditional mean, but in terms of counterfactuals theory, maybe using just the factual feature would be more realistic. But to do this we would need to work in the <code>causal_effects_matrix</code> and this was part of my work creating <code>transformable_features</code> for the SCM where we would probably need to use <code>ignore_derivatives()</code> from <code>Zygote.jl</code>.</p>
+<div id="16" class="cell" data-execution_count="1">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">function</span> <span class="fu">transformable_features</span>(</span>
+<span id="cb9-2"><a href="#cb9-2"></a>    counterfactual_data<span class="op">::</span><span class="dt">CounterfactualData</span>, input_encoder<span class="op">::</span><span class="dt">Type{CausalInference.SCM}</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a>)</span>
+<span id="cb9-4"><a href="#cb9-4"></a>    g <span class="op">=</span> counterfactual_data.input_encoder.dag</span>
+<span id="cb9-5"><a href="#cb9-5"></a>    child_causal_nodes <span class="op">=</span> [v for v <span class="kw">in</span> <span class="fu">vertices</span>(g) if <span class="fu">indegree</span>(g, v) <span class="op">&gt;=</span> <span class="fl">1</span>]</span>
+<span id="cb9-6"><a href="#cb9-6"></a>    <span class="cf">return</span> child_causal_nodes</span>
+<span id="cb9-7"><a href="#cb9-7"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Another direction of future work is that the current implementation of the MINT Generator is limited to linear causal relations. One could extend this to non-linear causal relations, such as those found in neural networks. Additionally, the we could shift the paradigm to use Bayesian Inference to generate the causal equations. This work would be a new extension in <code>CausalInference.jl</code>.</p>
+</section>
+<section id="github-prs-and-issues" class="level2">
+<h2 class="anchored" data-anchor-id="github-prs-and-issues">Github PRs and Issues</h2>
+<p>In the following links, you can find the PRs and issues that were opened and closed during the project. They show some kind of history of the work developed:</p>
+<p><em>Causal Inference</em>:</p>
+<ul>
+<li><a href="https://github.com/mschauer/CausalInference.jl/pull/155">PR1 - SCM</a></li>
+<li><a href="https://github.com/mschauer/CausalInference.jl/pull/157">PR2 - causal effects matrix</a></li>
+<li><a href="https://github.com/mschauer/CausalInference.jl/pull/158">PR3 - version Julia register</a></li>
+<li><a href="https://github.com/mschauer/CausalInference.jl/issues/154">Issue1 - Retrieve equations CausalGraph</a></li>
+</ul>
+<p><em>CounterfactualExplanations</em>:</p>
+<ul>
+<li><a href="https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/pull/461">PR1 - encondings.jl</a></li>
+<li><a href="https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/pull/464">PR2 - Constrained Optimization</a></li>
+<li><a href="https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/pull/468">PR3 - add MINT docs</a></li>
+<li><a href="https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/issues/456">Issue1 - support for SCM</a></li>
+<li><a href="https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/issues/457">Issue2 - Constrained Optimization</a></li>
+<li><a href="https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/issues/467">Issue3 - Document MINT</a></li>
+</ul>
+<p>And one that still open:</p>
+<ul>
+<li><a href="https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/issues/466">Issue4 - MINTGenerator Interface</a></li>
+</ul>
+</section>
+</section>
+<section id="usage" class="level1">
+<h1>Usage</h1>
+<p>The MINT algorithm can be implemented using the <code>GenericGenerator</code> and the SCM encoder, that we implement using <code>CausalInference.jl</code> package. The following code snippet shows how to use the MINT algorithm to generate counterfactuals using any gradient-based generator:</p>
+<div id="18" class="cell" data-execution_count="0">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1"></a><span class="im">using</span> <span class="bu">CausalInference</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="im">using</span> <span class="bu">CounterfactualExplanations</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="im">using</span> <span class="bu">CounterfactualExplanations.DataPreprocessing</span>: fit_transformer</span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="im">using</span> <span class="bu">Tables</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a></span>
+<span id="cb10-6"><a href="#cb10-6"></a>N <span class="op">=</span> <span class="fl">2000</span></span>
+<span id="cb10-7"><a href="#cb10-7"></a>df <span class="op">=</span> (</span>
+<span id="cb10-8"><a href="#cb10-8"></a>    x <span class="op">=</span> <span class="fu">randn</span>(N), </span>
+<span id="cb10-9"><a href="#cb10-9"></a>    v <span class="op">=</span> <span class="fu">randn</span>(N) <span class="op">.^</span> <span class="fl">2</span> <span class="op">+</span> <span class="fu">randn</span>(N) <span class="op">*</span> <span class="fl">0.25</span>, </span>
+<span id="cb10-10"><a href="#cb10-10"></a>    w <span class="op">=</span> <span class="fu">cos</span>.(<span class="fu">randn</span>(N)) <span class="op">+</span> <span class="fu">randn</span>(N) <span class="op">*</span> <span class="fl">0.25</span>, </span>
+<span id="cb10-11"><a href="#cb10-11"></a>    z <span class="op">=</span> <span class="fu">randn</span>(N) <span class="op">.^</span> <span class="fl">2</span> <span class="op">+</span> <span class="fu">cos</span>.(<span class="fu">randn</span>(N)) <span class="op">+</span> <span class="fu">randn</span>(N) <span class="op">*</span> <span class="fl">0.25</span> <span class="op">+</span> <span class="fu">randn</span>(N) <span class="op">*</span> <span class="fl">0.25</span>, </span>
+<span id="cb10-12"><a href="#cb10-12"></a>    s <span class="op">=</span> <span class="fu">sin</span>.(<span class="fu">randn</span>(N) <span class="op">.^</span> <span class="fl">2</span> <span class="op">+</span> <span class="fu">cos</span>.(<span class="fu">randn</span>(N)) <span class="op">+</span> <span class="fu">randn</span>(N) <span class="op">*</span> <span class="fl">0.25</span> <span class="op">+</span> <span class="fu">randn</span>(N) <span class="op">*</span> <span class="fl">0.25</span>) <span class="op">+</span> <span class="fu">randn</span>(N) <span class="op">*</span> <span class="fl">0.25</span></span>
+<span id="cb10-13"><a href="#cb10-13"></a>)</span>
+<span id="cb10-14"><a href="#cb10-14"></a>y_lab <span class="op">=</span> <span class="fu">rand</span>(<span class="fl">0</span><span class="op">:</span><span class="fl">2</span>, N)</span>
+<span id="cb10-15"><a href="#cb10-15"></a>counterfactual_data_scm <span class="op">=</span> <span class="fu">CounterfactualData</span>(Tables.<span class="fu">matrix</span>(df; transpose<span class="op">=</span><span class="cn">true</span>), y_lab)</span>
+<span id="cb10-16"><a href="#cb10-16"></a></span>
+<span id="cb10-17"><a href="#cb10-17"></a>M <span class="op">=</span> <span class="fu">fit_model</span>(counterfactual_data_scm, <span class="op">:</span>Linear)</span>
+<span id="cb10-18"><a href="#cb10-18"></a>chosen <span class="op">=</span> <span class="fu">rand</span>(<span class="fu">findall</span>(<span class="fu">predict_label</span>(M, counterfactual_data_scm) <span class="op">.==</span> <span class="fl">1</span>))</span>
+<span id="cb10-19"><a href="#cb10-19"></a>x <span class="op">=</span> <span class="fu">select_factual</span>(counterfactual_data_scm, chosen)</span>
+<span id="cb10-20"><a href="#cb10-20"></a></span>
+<span id="cb10-21"><a href="#cb10-21"></a>data_scm <span class="op">=</span> <span class="fu">deepcopy</span>(counterfactual_data_scm)</span>
+<span id="cb10-22"><a href="#cb10-22"></a>data_scm.input_encoder <span class="op">=</span> <span class="fu">fit_transformer</span>(data_scm, CausalInference.SCM)</span>
+<span id="cb10-23"><a href="#cb10-23"></a></span>
+<span id="cb10-24"><a href="#cb10-24"></a>ce <span class="op">=</span> <span class="fu">generate_counterfactual</span>(x, <span class="fl">2</span>, data_scm, M, <span class="fu">GenericGenerator</span>(); initialization<span class="op">=:</span>identity)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>For further usage reference access the <a href="https://juliatrustworthyai.github.io/CounterfactualExplanations.jl/dev/explanation/generators/mint/">MINT official documentation</a>.</p>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>During this project, I had the opportunity to contribute to both the XAI and Julia communities, where I implemented a SOTA method that used causal information to generate counterfactual explanations <span class="citation" data-cites="karimi2021algorithmic">(<a href="#ref-karimi2021algorithmic" role="doc-biblioref">Karimi, Schölkopf, and Valera 2021</a>)</span>. It was an amazing experience to work with incredible mentors and the community. I would like to once again thank Patrick and Moritz for all their guidance, as well as Jacob Zelko and JuliaHUB for all their support. I learned a lot about the Julia language and the Julia community, and I witnessed firsthand the benefits of Open Source. In fact, it was Open Source that made it possible to contribute to two repositories simultaneously. This experience of working locally on <code>CounterfactualExplanations.jl</code> and <code>CausalInference.jl</code> was invaluable, as it allowed me to truly understand how things work under the hood.</p>
+<p>I hope that the MINT Generator can be useful to the community and that the package continues to be improved in the future. Contributing to a more trustworthy Artificial Intelligence has always been a goal of mine, and even though my contribution may be small, I feel proud to have achieved something meaningful. My wish is to continue contributing to the responsible use of AI. I am very grateful for this opportunity, and I look forward to continuing to contribute to the community. 🚀🚀🚀</p>
+</section>
+<section id="references" class="level1">
+
+
+
+<!-- -->
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-altmeyer2024faithful" class="csl-entry" role="listitem">
+Altmeyer, Patrick, Mojtaba Farmanbar, Arie van Deursen, and Cynthia CS Liem. 2024. <span>“Faithful Model Explanations Through Energy-Constrained Conformal Counterfactuals.”</span> In <em>Proceedings of the AAAI Conference on Artificial Intelligence</em>, 38:10829–37. 10.
+</div>
+<div id="ref-chickering2003optimal" class="csl-entry" role="listitem">
+Chickering, David Maxwell. 2003. <span>“Optimal Structure Identification with Greedy Search.”</span> <em>J. Mach. Learn. Res.</em> 3 (null): 507–54. <a href="https://doi.org/10.1162/153244303321897717">https://doi.org/10.1162/153244303321897717</a>.
+</div>
+<div id="ref-karimi2021algorithmic" class="csl-entry" role="listitem">
+Karimi, Amir-Hossein, Bernhard Schölkopf, and Isabel Valera. 2021. <span>“Algorithmic Recourse: From Counterfactual Explanations to Interventions.”</span> In <em>Proceedings of the 2021 ACM Conference on Fairness, Accountability, and Transparency</em>, 353–62. FAccT ’21. New York, NY, USA: Association for Computing Machinery. <a href="https://doi.org/10.1145/3442188.3445899">https://doi.org/10.1145/3442188.3445899</a>.
+</div>
+<div id="ref-mothilal2020explaining" class="csl-entry" role="listitem">
+Mothilal, Ramaravind K, Amit Sharma, and Chenhao Tan. 2020. <span>“Explaining Machine Learning Classifiers Through Diverse Counterfactual Explanations.”</span> In <em>Proceedings of the 2020 <span>Conference</span> on <span>Fairness</span>, <span>Accountability</span>, and <span>Transparency</span></em>, 607–17. <a href="https://doi.org/10.1145/3351095.3372850">https://doi.org/10.1145/3351095.3372850</a>.
+</div>
+<div id="ref-wachter2017counterfactual" class="csl-entry" role="listitem">
+Wachter, Sandra, Brent Mittelstadt, and Chris Russell. 2017. <span>“Counterfactual Explanations Without Opening the Black Box: <span>Automated</span> Decisions and the <span>GDPR</span>.”</span> <em>Harv. JL &amp; Tech.</em> 31: 841. <a href="https://doi.org/10.2139/ssrn.3063289">https://doi.org/10.2139/ssrn.3063289</a>.
+</div>
+</div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{luiz_franco2024,
+  author = {Luiz Franco, Jorge},
+  title = {When {Causality} Meets {Recourse}},
+  date = {2024-09-17},
+  url = {https://www.taija.org/blog/posts/causal-recourse/},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-luiz_franco2024" class="csl-entry quarto-appendix-citeas" role="listitem">
+Luiz Franco, Jorge. 2024. <span>“When Causality Meets Recourse.”</span>
+September 17, 2024. <a href="https://www.taija.org/blog/posts/causal-recourse/">https://www.taija.org/blog/posts/causal-recourse/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/www\.taija\.org\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://utteranc.es/client.js" repo="JuliaTrustworthyAI/.github" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb11" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">---</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="an">title:</span><span class="co"> "When Causality meets Recourse"</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="an">subtitle:</span><span class="co"> "Counterfactual Explanations through Structural Causal Models"</span></span>
+<span id="cb11-4"><a href="#cb11-4"></a><span class="an">date:</span><span class="co"> '2024-09-17'</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="an">description:</span><span class="co"> |</span></span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="co">    This post introduces a new tool in CounterfactualExplanations.jl, enhancing the package with causal reasoning to generate counterfactual explanations.</span></span>
+<span id="cb11-7"><a href="#cb11-7"></a><span class="an">author:</span><span class="co"> </span></span>
+<span id="cb11-8"><a href="#cb11-8"></a><span class="co">  - name: Jorge Luiz Franco </span></span>
+<span id="cb11-9"><a href="#cb11-9"></a><span class="co">    url: https://www.linkedin.com/in/jorgelwyz/</span></span>
+<span id="cb11-10"><a href="#cb11-10"></a><span class="an">categories:</span></span>
+<span id="cb11-11"><a href="#cb11-11"></a><span class="co">  - counterfactuals</span></span>
+<span id="cb11-12"><a href="#cb11-12"></a><span class="co">  - explainable AI</span></span>
+<span id="cb11-13"><a href="#cb11-13"></a><span class="co">  - causality</span></span>
+<span id="cb11-14"><a href="#cb11-14"></a><span class="co">  - Julia</span></span>
+<span id="cb11-15"><a href="#cb11-15"></a><span class="an">image:</span><span class="co"> www/intro.png</span></span>
+<span id="cb11-16"><a href="#cb11-16"></a><span class="an">execute:</span></span>
+<span id="cb11-17"><a href="#cb11-17"></a><span class="co">  eval: true</span></span>
+<span id="cb11-18"><a href="#cb11-18"></a><span class="co">  echo: true</span></span>
+<span id="cb11-19"><a href="#cb11-19"></a><span class="an">engine:</span><span class="co"> julia</span></span>
+<span id="cb11-20"><a href="#cb11-20"></a><span class="an">julia:</span><span class="co"> </span></span>
+<span id="cb11-21"><a href="#cb11-21"></a><span class="co">  exeflags: ["--project=./"]</span></span>
+<span id="cb11-22"><a href="#cb11-22"></a><span class="an">code-fold:</span><span class="co"> show</span></span>
+<span id="cb11-23"><a href="#cb11-23"></a><span class="co">---</span></span>
+<span id="cb11-24"><a href="#cb11-24"></a></span>
+<span id="cb11-25"><a href="#cb11-25"></a><span class="fu"># Introduction</span></span>
+<span id="cb11-26"><a href="#cb11-26"></a></span>
+<span id="cb11-27"><a href="#cb11-27"></a>In recent years, the need for interpretable and explainable AI has surged, particularly in high-stakes domains. Counterfactual explanations provide a means to understand how changes to input features could alter the outcomes of machine learning models. This blog post presents a new tool in the <span class="co">[</span><span class="ot">CounterfactualExplanations.jl</span><span class="co">](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl)</span> package, developed during my JSoC (Julia Summer of Code) project, which incorporates causal reasoning into counterfactual generation.</span>
+<span id="cb11-28"><a href="#cb11-28"></a></span>
+<span id="cb11-29"><a href="#cb11-29"></a><span class="fu">#### Testimonial</span></span>
+<span id="cb11-30"><a href="#cb11-30"></a></span>
+<span id="cb11-31"><a href="#cb11-31"></a><span class="at">&gt; This was an amazing experience, not just experience to contribute to two repositories simultaneously, but also to work with the mantainers of these repos. I learned a lot about the Julia language and the Julia community. This was possible because of the mentorship of Patrick Altmeyer (CounterfactualExplanations) and Moritz Schauer (CausalInference), who guided me throughout the project and are amazing researchers.</span></span>
+<span id="cb11-32"><a href="#cb11-32"></a></span>
+<span id="cb11-33"><a href="#cb11-33"></a><span class="fu"># Project Overview</span></span>
+<span id="cb11-34"><a href="#cb11-34"></a></span>
+<span id="cb11-35"><a href="#cb11-35"></a>This project aimed to enhance the CounterfactualExplanations.jl package by infusing it with a robust mathematical foundation for minimal algorithmic recourse, based on the principles of causal reasoning <span class="co">[</span><span class="ot">@karimi2021algorithmic</span><span class="co">]</span>. </span>
+<span id="cb11-36"><a href="#cb11-36"></a></span>
+<span id="cb11-37"><a href="#cb11-37"></a><span class="fu">## Key Contributions</span></span>
+<span id="cb11-38"><a href="#cb11-38"></a></span>
+<span id="cb11-39"><a href="#cb11-39"></a>During the project, I contributed to two key repositories:</span>
+<span id="cb11-40"><a href="#cb11-40"></a></span>
+<span id="cb11-41"><a href="#cb11-41"></a><span class="ss">1. </span><span class="co">[</span><span class="ot">CounterfactualExplanations.jl</span><span class="co">](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl)</span>: Developed a new tool for generating counterfactual explanations using causal information. This allows users to generate counterfactuals through causal interventions rather than minimal perturbations, ultimately providing more meaningful insights.</span>
+<span id="cb11-42"><a href="#cb11-42"></a></span>
+<span id="cb11-43"><a href="#cb11-43"></a><span class="ss">2. </span><span class="co">[</span><span class="ot">CausalInference.jl</span><span class="co">](https://github.com/mschauer/CausalInference.jl)</span>: Implemented a Structural Causal Model (SCM) structure that extracts information from data, laying the groundwork for the causal reasoning capabilities in <span class="co">[</span><span class="ot">CounterfactualExplanations.jl</span><span class="co">](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl)</span>.</span>
+<span id="cb11-44"><a href="#cb11-44"></a></span>
+<span id="cb11-45"><a href="#cb11-45"></a><span class="fu">## Theoretical Background {#sec-background}</span></span>
+<span id="cb11-46"><a href="#cb11-46"></a></span>
+<span id="cb11-47"><a href="#cb11-47"></a>In this project, we developed a framework for the MINT Generator: a counterfactual generator based on the Recourse through Minimal</span>
+<span id="cb11-48"><a href="#cb11-48"></a>Intervention (MINT) method proposed by @karimi2021algorithmic.</span>
+<span id="cb11-49"><a href="#cb11-49"></a></span>
+<span id="cb11-50"><a href="#cb11-50"></a>The MINT Generator incorporates causal reasoning to achieve algorithmic recourse through minimal interventions. In this sense, the main idea is that just perturbating a black-box model without taking into account the causal relations in the data can lead to misleading recommendations. Here we now shift to a perspective where every feature pertubation is an intervetion in the causal graph of the problem. Leveraging causal relationships, interventions on causal parents automatially lead to potentially useful changes in their causal children. The generator utilizes a Structural Causal Model(SCM) to encode the variables in a way that causal effects are propagated and uses a generic gradient-based generator to create the search path. This has the benefit that any existing gradient-based generator, such as ECCo <span class="co">[</span><span class="ot">@altmeyer2024faithful</span><span class="co">]</span>, Watcher <span class="co">[</span><span class="ot">@wachter2017counterfactual</span><span class="co">]</span>, DiCE <span class="co">[</span><span class="ot">@mothilal2020explaining</span><span class="co">]</span>, and more, can be used with the MINT SCM encoder to generate counterfactual through causal interventions.</span>
+<span id="cb11-51"><a href="#cb11-51"></a></span>
+<span id="cb11-52"><a href="#cb11-52"></a>The MINT algorithm minimizes a loss function that combines the causal constraints of the SCM and the distance between the generated counterfactual and the original input. Since we want a gradient-based generator, we need to pass the constrained optimizaiton problem into an unconstrained one and we do this by using the Lagrangian. Initially, as defined in <span class="co">[</span><span class="ot">@karimi2021algorithmic</span><span class="co">]</span>, we aim to aim to find the minimal cost set of actions $A$ (in the form of structural interventions) that results in a counterfactual instance yielding the favorable output from $h$,</span>
+<span id="cb11-53"><a href="#cb11-53"></a></span>
+<span id="cb11-54"><a href="#cb11-54"></a>$$</span>
+<span id="cb11-55"><a href="#cb11-55"></a>\begin{aligned}</span>
+<span id="cb11-56"><a href="#cb11-56"></a>A^* \in \arg\min_A \text{cost}(A; \mathbf{x}_F)<span class="sc">\\</span></span>
+<span id="cb11-57"><a href="#cb11-57"></a>\textrm{s.t.} \quad  h(\mathbf{x}_{SCF}) \neq h(\mathbf{x}_F) \; \; \text{,}<span class="sc">\\</span></span>
+<span id="cb11-58"><a href="#cb11-58"></a>\end{aligned} </span>
+<span id="cb11-59"><a href="#cb11-59"></a>$$</span>
+<span id="cb11-60"><a href="#cb11-60"></a></span>
+<span id="cb11-61"><a href="#cb11-61"></a>where $\mathbf{x}_F$ is the original input, $\mathbf{x}_{SCF}$ is the counterfactual instance, and $h$ is the black-box model. We use the $\mathbf{x}_{SCF}$ terminology because the counterfactual is derived from the SCM,</span>
+<span id="cb11-62"><a href="#cb11-62"></a></span>
+<span id="cb11-63"><a href="#cb11-63"></a>$$</span>
+<span id="cb11-64"><a href="#cb11-64"></a>x_{SCF_i} = </span>
+<span id="cb11-65"><a href="#cb11-65"></a>\begin{cases}</span>
+<span id="cb11-66"><a href="#cb11-66"></a>x_{F_i} + \delta_i, &amp; \text{if } i \in I <span class="sc">\\</span></span>
+<span id="cb11-67"><a href="#cb11-67"></a>x_{F_i} + f_i(\text{pa}_{SCF_i}) - f_i(\text{pa}_{F_i}), &amp; \text{if } i \notin I  \; \; \text{,}</span>
+<span id="cb11-68"><a href="#cb11-68"></a>\end{cases} </span>
+<span id="cb11-69"><a href="#cb11-69"></a>$$</span>
+<span id="cb11-70"><a href="#cb11-70"></a></span>
+<span id="cb11-71"><a href="#cb11-71"></a>where $I$ is the set of intervened upon variables, $f_i$ is the function that generates the value of the variable $i$ given its parents, and $\text{pa}_{SCF_i}$ and $\text{pa}_{F_i}$ are the parents of the variable $i$ in the counterfactual and original instance, respectively. This closed formula for the decision variable $\mathbf{x}_{SCF}$ is what makes possible to use a gradient-based generator, since with it the lagrangian is differentiable,</span>
+<span id="cb11-72"><a href="#cb11-72"></a></span>
+<span id="cb11-73"><a href="#cb11-73"></a>$$</span>
+<span id="cb11-74"><a href="#cb11-74"></a>\mathcal{L}(A ; \lambda) = \text{cost}(A; \mathbf{x}_F) + \lambda \left(h(\mathbf{x}_{SCF}) - h(\mathbf{x}_F) \right) \; \; \text{,}</span>
+<span id="cb11-75"><a href="#cb11-75"></a>$$</span>
+<span id="cb11-76"><a href="#cb11-76"></a></span>
+<span id="cb11-77"><a href="#cb11-77"></a>or in simple terms and more standard, since $\lambda$ is constant,</span>
+<span id="cb11-78"><a href="#cb11-78"></a></span>
+<span id="cb11-79"><a href="#cb11-79"></a>$$</span>
+<span id="cb11-80"><a href="#cb11-80"></a>\mathcal{L_{\texttt{MINT}}}(\mathbf{x}_{SCF}) = \lambda \text{cost}(\mathbf{x}_{SCF}; \mathbf{x}_F) + \text{yloss}(\mathbf{x}_{SCF},y^*) \; \; \text{,}</span>
+<span id="cb11-81"><a href="#cb11-81"></a>$$</span>
+<span id="cb11-82"><a href="#cb11-82"></a></span>
+<span id="cb11-83"><a href="#cb11-83"></a>where $y^*$ is clearly $h(x_F)$ and $\text{yloss}$ is : </span>
+<span id="cb11-84"><a href="#cb11-84"></a></span>
+<span id="cb11-85"><a href="#cb11-85"></a>$$</span>
+<span id="cb11-86"><a href="#cb11-86"></a>\text{yloss}(\mathbf{x}_{SCF}, y^*) = h \left(\left\{ x_{F_i} + \delta_i [i \in I] + \left(f_i(\text{pa}_{SCF_i}) - f_i(\text{pa}_{F_i}) \right) [i \notin I] \right\}_{i=1}^n \right) - y^* \; \; \text{.} </span>
+<span id="cb11-87"><a href="#cb11-87"></a>$$</span>
+<span id="cb11-88"><a href="#cb11-88"></a></span>
+<span id="cb11-89"><a href="#cb11-89"></a><span class="fu">## Implementation</span></span>
+<span id="cb11-90"><a href="#cb11-90"></a></span>
+<span id="cb11-91"><a href="#cb11-91"></a>As mentioned above, this project involved contributions to both <span class="co">[</span><span class="ot">CausalInference.jl</span><span class="co">](https://github.com/mschauer/CausalInference.jl)</span> and <span class="co">[</span><span class="ot">CounterfactualExplanations.jl</span><span class="co">](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl)</span>. In this section, we will cover both of these. Before we begin, we load all necessary dependencies below:</span>
+<span id="cb11-92"><a href="#cb11-92"></a></span>
+<span id="cb11-95"><a href="#cb11-95"></a><span class="in">```{julia}</span></span>
+<span id="cb11-96"><a href="#cb11-96"></a><span class="in">using CausalInference</span></span>
+<span id="cb11-97"><a href="#cb11-97"></a><span class="in">using CounterfactualExplanations</span></span>
+<span id="cb11-98"><a href="#cb11-98"></a><span class="in">using CounterfactualExplanations.GenerativeModels</span></span>
+<span id="cb11-99"><a href="#cb11-99"></a><span class="in">using Graphs</span></span>
+<span id="cb11-100"><a href="#cb11-100"></a><span class="in">using GraphRecipes</span></span>
+<span id="cb11-101"><a href="#cb11-101"></a><span class="in">using MultivariateStats</span></span>
+<span id="cb11-102"><a href="#cb11-102"></a><span class="in">using Plots</span></span>
+<span id="cb11-103"><a href="#cb11-103"></a><span class="in">using Random</span></span>
+<span id="cb11-104"><a href="#cb11-104"></a><span class="in">Random.seed!(1)</span></span>
+<span id="cb11-105"><a href="#cb11-105"></a><span class="in">using StatsBase</span></span>
+<span id="cb11-106"><a href="#cb11-106"></a><span class="in">```</span></span>
+<span id="cb11-107"><a href="#cb11-107"></a></span>
+<span id="cb11-108"><a href="#cb11-108"></a><span class="fu">### Causal Inference</span></span>
+<span id="cb11-109"><a href="#cb11-109"></a></span>
+<span id="cb11-110"><a href="#cb11-110"></a>In terms of implementation, we need to capture the causal relations from the data, which is where <span class="co">[</span><span class="ot">CausalInference.jl</span><span class="co">](https://github.com/mschauer/CausalInference.jl)</span> comes in. However, before the project, the package did not have a SCM structure, in the sense that the methods just captured the topological Directed Acyclic Graph (DAG) that showed the causality governing the data. There was previously no way to transform graphs into structural causal models. </span>
+<span id="cb11-111"><a href="#cb11-111"></a></span>
+<span id="cb11-112"><a href="#cb11-112"></a>Consider the following synthetic data:</span>
+<span id="cb11-113"><a href="#cb11-113"></a></span>
+<span id="cb11-116"><a href="#cb11-116"></a><span class="in">```{julia}</span></span>
+<span id="cb11-117"><a href="#cb11-117"></a><span class="in">N = 2000 # number of data points</span></span>
+<span id="cb11-118"><a href="#cb11-118"></a></span>
+<span id="cb11-119"><a href="#cb11-119"></a><span class="in">x = randn(N)</span></span>
+<span id="cb11-120"><a href="#cb11-120"></a><span class="in">v = x + randn(N)*0.25</span></span>
+<span id="cb11-121"><a href="#cb11-121"></a><span class="in">w = x + randn(N)*0.25</span></span>
+<span id="cb11-122"><a href="#cb11-122"></a><span class="in">z = v + w + randn(N)*0.25</span></span>
+<span id="cb11-123"><a href="#cb11-123"></a><span class="in">s = z + randn(N)*0.25</span></span>
+<span id="cb11-124"><a href="#cb11-124"></a><span class="in">df = (x=x, v=v, w=w, z=z, s=s)</span></span>
+<span id="cb11-125"><a href="#cb11-125"></a><span class="in">```</span></span>
+<span id="cb11-126"><a href="#cb11-126"></a></span>
+<span id="cb11-127"><a href="#cb11-127"></a>Using <span class="co">[</span><span class="ot">CausalInference.jl</span><span class="co">](https://github.com/mschauer/CausalInference.jl)</span>, we can use the <span class="in">`ges`</span> method for the causal discovery <span class="co">[</span><span class="ot">@chickering2003optimal</span><span class="co">]</span> and plot the resulting DAG <span class="co">[</span><span class="ot">@fig-dag</span><span class="co">]</span>:</span>
+<span id="cb11-128"><a href="#cb11-128"></a></span>
+<span id="cb11-131"><a href="#cb11-131"></a><span class="in">```{julia}</span></span>
+<span id="cb11-132"><a href="#cb11-132"></a><span class="in">#| output: true</span></span>
+<span id="cb11-133"><a href="#cb11-133"></a><span class="in">#| fig-cap: "A simple example of a causal graph."</span></span>
+<span id="cb11-134"><a href="#cb11-134"></a><span class="in">#| label: fig-dag</span></span>
+<span id="cb11-135"><a href="#cb11-135"></a></span>
+<span id="cb11-136"><a href="#cb11-136"></a><span class="in">est_g, score = ges(df; penalty=1.0, parallel=true)</span></span>
+<span id="cb11-137"><a href="#cb11-137"></a></span>
+<span id="cb11-138"><a href="#cb11-138"></a><span class="in">plt = graphplot(pdag2dag!(est_g), names= [String(k) for k in keys(df)], size=(500,500), nodesize=0.1, fontsize=25)</span></span>
+<span id="cb11-139"><a href="#cb11-139"></a><span class="in">savefig(plt, "www/intro.png")</span></span>
+<span id="cb11-140"><a href="#cb11-140"></a><span class="in">display(plt)</span></span>
+<span id="cb11-141"><a href="#cb11-141"></a><span class="in">```</span></span>
+<span id="cb11-142"><a href="#cb11-142"></a></span>
+<span id="cb11-143"><a href="#cb11-143"></a>Given the DAG in @fig-dag, our goal is to recover the equations that define the underlying causal relations. The SCM is the union of the DAG and these causal equations: formally, it can be represented as a tuple $(G, \mathbf{f})$, where $G$ is the DAG and $\mathbf{f}$ is the set of functions that generates the value of each variable given its parents. </span>
+<span id="cb11-144"><a href="#cb11-144"></a></span>
+<span id="cb11-145"><a href="#cb11-145"></a>Our solution for constructing the structural causal equations was to assume that the data was generated by a linear model, which in this simple synthetic example actually corresponds to the ground truth. For the DAG provided in the code example we derive</span>
+<span id="cb11-146"><a href="#cb11-146"></a></span>
+<span id="cb11-147"><a href="#cb11-147"></a>$$ v = \mathcal{b}_v $$</span>
+<span id="cb11-148"><a href="#cb11-148"></a></span>
+<span id="cb11-149"><a href="#cb11-149"></a>$$ x = \mathcal{a}_{v \to x} v + \mathcal{b}_x $$</span>
+<span id="cb11-150"><a href="#cb11-150"></a></span>
+<span id="cb11-151"><a href="#cb11-151"></a>$$ w = \mathcal{a}_{x \to w} x + \mathcal{b}_w $$</span>
+<span id="cb11-152"><a href="#cb11-152"></a></span>
+<span id="cb11-153"><a href="#cb11-153"></a>$$ z = \mathcal{a}_{v \to z} v+ \mathcal{a}_{w \to z} w + \mathcal{b}_z $$</span>
+<span id="cb11-154"><a href="#cb11-154"></a></span>
+<span id="cb11-155"><a href="#cb11-155"></a>$$ s = \mathcal{a}_{z \to s} z + \mathcal{b}_s $$</span>
+<span id="cb11-156"><a href="#cb11-156"></a></span>
+<span id="cb11-157"><a href="#cb11-157"></a>and that's the tricky thing, as we can see these causal equations are different than the ones that generated the data, but they are the ones that respect the causal system obtained from the obtained DAG. Here $\mathcal{b}_i$ and $\mathcal{a}_{i \to j}$ are the intercept term and the coefficient obtained from the linear regression, respectively. To correctly solve the linear regression respecting the dependencies of the causal graph, we use <span class="in">`topological_sort_by_dfs`</span> from <span class="in">`Graphs.jl`</span>.</span>
+<span id="cb11-158"><a href="#cb11-158"></a></span>
+<span id="cb11-159"><a href="#cb11-159"></a>Now, with the SCM structure at hand, we see that the representation could be a struct containing the DAG and the coefficients/intercepts of the causal equations, which corresponds exactly the tuple $(G, \mathbf{f})$ that we defined. A technical difficulty is that since we aim for gradient-based counterfactual generation, we need to define a differentiable function that takes the SCM and applies the encoded causal relationships to all variables. That is where the <span class="in">`causal_effects`</span> matrix comes to the rescue.</span>
+<span id="cb11-160"><a href="#cb11-160"></a></span>
+<span id="cb11-161"><a href="#cb11-161"></a>Let the factual vector of features be denoted as:</span>
+<span id="cb11-162"><a href="#cb11-162"></a></span>
+<span id="cb11-163"><a href="#cb11-163"></a>$$</span>
+<span id="cb11-164"><a href="#cb11-164"></a>\mathbf{x}_F = </span>
+<span id="cb11-165"><a href="#cb11-165"></a>\begin{bmatrix}</span>
+<span id="cb11-166"><a href="#cb11-166"></a>x_{F_1} <span class="sc">\\</span></span>
+<span id="cb11-167"><a href="#cb11-167"></a>x_{F_2} <span class="sc">\\</span></span>
+<span id="cb11-168"><a href="#cb11-168"></a>x_{F_3} <span class="sc">\\</span></span>
+<span id="cb11-169"><a href="#cb11-169"></a>\vdots <span class="sc">\\</span></span>
+<span id="cb11-170"><a href="#cb11-170"></a>x_{F_n}</span>
+<span id="cb11-171"><a href="#cb11-171"></a>\end{bmatrix}</span>
+<span id="cb11-172"><a href="#cb11-172"></a>$$</span>
+<span id="cb11-173"><a href="#cb11-173"></a></span>
+<span id="cb11-174"><a href="#cb11-174"></a>Let the <span class="in">`causal_effects`</span> matrix be:</span>
+<span id="cb11-175"><a href="#cb11-175"></a></span>
+<span id="cb11-176"><a href="#cb11-176"></a>$$</span>
+<span id="cb11-177"><a href="#cb11-177"></a>\mathbf{C} =</span>
+<span id="cb11-178"><a href="#cb11-178"></a>\begin{bmatrix}</span>
+<span id="cb11-179"><a href="#cb11-179"></a>a_{11} &amp; a_{12} &amp; \cdots &amp; a_{1n} &amp; b_1 <span class="sc">\\</span></span>
+<span id="cb11-180"><a href="#cb11-180"></a>a_{21} &amp; a_{22} &amp; \cdots &amp; a_{2n} &amp; b_2 <span class="sc">\\</span></span>
+<span id="cb11-181"><a href="#cb11-181"></a>a_{31} &amp; a_{32} &amp; \cdots &amp; a_{3n} &amp; b_3 <span class="sc">\\</span></span>
+<span id="cb11-182"><a href="#cb11-182"></a>\vdots &amp; \vdots &amp; \ddots &amp; \vdots &amp; \vdots <span class="sc">\\</span></span>
+<span id="cb11-183"><a href="#cb11-183"></a>a_{n1} &amp; a_{n2} &amp; \cdots &amp; a_{nn} &amp; b_n <span class="sc">\\</span></span>
+<span id="cb11-184"><a href="#cb11-184"></a>\end{bmatrix}</span>
+<span id="cb11-185"><a href="#cb11-185"></a>$$</span>
+<span id="cb11-186"><a href="#cb11-186"></a></span>
+<span id="cb11-187"><a href="#cb11-187"></a>Here, $a_{ij}$ represents the coefficient from the causal effect of $x_{F_j}$ on $x_{F_i}$, and $b_i$ represents the intercept term for the variable $x_{F_i}$.</span>
+<span id="cb11-188"><a href="#cb11-188"></a></span>
+<span id="cb11-189"><a href="#cb11-189"></a>The matrix multiplication of the <span class="in">`causal_effects`</span> matrix with the factual vector (excluding the bias term) is given by:</span>
+<span id="cb11-190"><a href="#cb11-190"></a></span>
+<span id="cb11-191"><a href="#cb11-191"></a>$$</span>
+<span id="cb11-192"><a href="#cb11-192"></a>\mathbf{C}_{:, 1:n} \cdot \mathbf{x}_F =</span>
+<span id="cb11-193"><a href="#cb11-193"></a>\begin{bmatrix}</span>
+<span id="cb11-194"><a href="#cb11-194"></a>a_{11} &amp; a_{12} &amp; \cdots &amp; a_{1n} <span class="sc">\\</span></span>
+<span id="cb11-195"><a href="#cb11-195"></a>a_{21} &amp; a_{22} &amp; \cdots &amp; a_{2n} <span class="sc">\\</span></span>
+<span id="cb11-196"><a href="#cb11-196"></a>a_{31} &amp; a_{32} &amp; \cdots &amp; a_{3n} <span class="sc">\\</span></span>
+<span id="cb11-197"><a href="#cb11-197"></a>\vdots &amp; \vdots &amp; \ddots &amp; \vdots <span class="sc">\\</span></span>
+<span id="cb11-198"><a href="#cb11-198"></a>a_{n1} &amp; a_{n2} &amp; \cdots &amp; a_{nn}</span>
+<span id="cb11-199"><a href="#cb11-199"></a>\end{bmatrix}</span>
+<span id="cb11-200"><a href="#cb11-200"></a>\begin{bmatrix}</span>
+<span id="cb11-201"><a href="#cb11-201"></a>x_{F_1} <span class="sc">\\</span></span>
+<span id="cb11-202"><a href="#cb11-202"></a>x_{F_2} <span class="sc">\\</span></span>
+<span id="cb11-203"><a href="#cb11-203"></a>x_{F_3} <span class="sc">\\</span></span>
+<span id="cb11-204"><a href="#cb11-204"></a>\vdots <span class="sc">\\</span></span>
+<span id="cb11-205"><a href="#cb11-205"></a>x_{F_n}</span>
+<span id="cb11-206"><a href="#cb11-206"></a>\end{bmatrix}</span>
+<span id="cb11-207"><a href="#cb11-207"></a>$$</span>
+<span id="cb11-208"><a href="#cb11-208"></a></span>
+<span id="cb11-209"><a href="#cb11-209"></a>Finally, we add the bias term:</span>
+<span id="cb11-210"><a href="#cb11-210"></a></span>
+<span id="cb11-211"><a href="#cb11-211"></a>$$</span>
+<span id="cb11-212"><a href="#cb11-212"></a>\mathbf{x}_{SCF} = \mathbf{C}_{:, 1:n} \cdot \mathbf{x}_F + </span>
+<span id="cb11-213"><a href="#cb11-213"></a>\begin{bmatrix}</span>
+<span id="cb11-214"><a href="#cb11-214"></a>b_1 <span class="sc">\\</span></span>
+<span id="cb11-215"><a href="#cb11-215"></a>b_2 <span class="sc">\\</span></span>
+<span id="cb11-216"><a href="#cb11-216"></a>b_3 <span class="sc">\\</span></span>
+<span id="cb11-217"><a href="#cb11-217"></a>\vdots <span class="sc">\\</span></span>
+<span id="cb11-218"><a href="#cb11-218"></a>b_n</span>
+<span id="cb11-219"><a href="#cb11-219"></a>\end{bmatrix}</span>
+<span id="cb11-220"><a href="#cb11-220"></a>$$</span>
+<span id="cb11-221"><a href="#cb11-221"></a></span>
+<span id="cb11-222"><a href="#cb11-222"></a>In expanded form:</span>
+<span id="cb11-223"><a href="#cb11-223"></a></span>
+<span id="cb11-224"><a href="#cb11-224"></a>$$</span>
+<span id="cb11-225"><a href="#cb11-225"></a>\mathbf{x}_{SCF_i} = a_{i1} x_{F_1} + a_{i2} x_{F_2} + \cdots + a_{in} x_{F_n} + b_i, \quad \forall i = 1, 2, \dots, n</span>
+<span id="cb11-226"><a href="#cb11-226"></a>$$</span>
+<span id="cb11-227"><a href="#cb11-227"></a></span>
+<span id="cb11-228"><a href="#cb11-228"></a>This equation shows how each counterfactual variable $x_{SCF_i}$ is generated as a linear combination of the factual inputs $x_{F_j}$ based on the causal effects matrix, with an intercept term $b_i$ added for each variable.</span>
+<span id="cb11-229"><a href="#cb11-229"></a></span>
+<span id="cb11-230"><a href="#cb11-230"></a>One can note that the <span class="in">`orphan`</span> nodes, that is, the nodes that do not have parents in the DAG, are going to be equal to the intercept term $\mathcal{b}_\hat{o}$. The intuition behind this is that when we do the linear regression, variables that have no causal parents are just equal to the unconditional mean of the variable, i.e, we get $x_{SCF_\hat{o}} = \mathbb{E}(x_\hat{o})$. Because of this, in some cases a better understanding of the regression is needed, so the residuals are also part of the SCM structure,</span>
+<span id="cb11-231"><a href="#cb11-231"></a></span>
+<span id="cb11-234"><a href="#cb11-234"></a><span class="in">```{julia}</span></span>
+<span id="cb11-235"><a href="#cb11-235"></a><span class="in">#| eval: false</span></span>
+<span id="cb11-236"><a href="#cb11-236"></a></span>
+<span id="cb11-237"><a href="#cb11-237"></a><span class="in">struct SCM</span></span>
+<span id="cb11-238"><a href="#cb11-238"></a><span class="in">    variables::Vector{String}</span></span>
+<span id="cb11-239"><a href="#cb11-239"></a><span class="in">    coefficients::Vector{Vector{Float64}}</span></span>
+<span id="cb11-240"><a href="#cb11-240"></a><span class="in">    residuals::Vector{Vector{Float64}}</span></span>
+<span id="cb11-241"><a href="#cb11-241"></a><span class="in">    dag::DiGraph</span></span>
+<span id="cb11-242"><a href="#cb11-242"></a><span class="in">    causal_effects::Matrix{Float64}</span></span>
+<span id="cb11-243"><a href="#cb11-243"></a><span class="in">end</span></span>
+<span id="cb11-244"><a href="#cb11-244"></a><span class="in">```</span></span>
+<span id="cb11-245"><a href="#cb11-245"></a></span>
+<span id="cb11-246"><a href="#cb11-246"></a><span class="fu">### `CounterfactualExplanations.jl` </span></span>
+<span id="cb11-247"><a href="#cb11-247"></a></span>
+<span id="cb11-248"><a href="#cb11-248"></a>Next, we will dive to go into the optimization problem previously described in @sec-background. Recall that we seek to minimize the Lagrangian function we defined where we now have a differentiable function. The standard way to implement generators in <span class="in">`CounterfactualExplanations.jl`</span> is to use autodifferentiation to solve this Lagrangian. The definition of $\mathcal{L_{\texttt{MINT}}}$ above is just an unconstrained objective function, much like with any other gradient-based generator in the package, so the optimization is straightforward (see <span class="co">[</span><span class="ot">docs</span><span class="co">](https://juliatrustworthyai.github.io/CounterfactualExplanations.jl/v1.2/)</span> for more details on gradient-based generators). </span>
+<span id="cb11-249"><a href="#cb11-249"></a></span>
+<span id="cb11-250"><a href="#cb11-250"></a>A challenge was to find a way to pass the $x_F$ into the $x_{SCF}$. For the time being, we have decided to extend an existing feature of the package, namely <span class="in">`InputTransformer`</span>s: they can be used to transform features, for example, through standardization. All existing <span class="in">`InputTransformer`</span>s work under the premise of encoding features into some latent representation, searching counterfactuals in that latent space, and finally decoding latent features back into the original feature space. In some way, this is also what we are doing here: we are passing our factual to the "latent" causal space of the counterfactual. </span>
+<span id="cb11-251"><a href="#cb11-251"></a></span>
+<span id="cb11-252"><a href="#cb11-252"></a>Our first step is to create a new kind of <span class="in">`InputTransformer`</span> for the SCM:</span>
+<span id="cb11-255"><a href="#cb11-255"></a><span class="in">```{julia}</span></span>
+<span id="cb11-256"><a href="#cb11-256"></a><span class="in">const TypedInputTransformer = Union{</span></span>
+<span id="cb11-257"><a href="#cb11-257"></a><span class="in">    Type{&lt;:StatsBase.AbstractDataTransform},</span></span>
+<span id="cb11-258"><a href="#cb11-258"></a><span class="in">    Type{&lt;:MultivariateStats.AbstractDimensionalityReduction},</span></span>
+<span id="cb11-259"><a href="#cb11-259"></a><span class="in">    Type{&lt;:GenerativeModels.AbstractGenerativeModel},</span></span>
+<span id="cb11-260"><a href="#cb11-260"></a><span class="in">    Type{&lt;:CausalInference.SCM} # The SCM transfromer</span></span>
+<span id="cb11-261"><a href="#cb11-261"></a><span class="in">}</span></span>
+<span id="cb11-262"><a href="#cb11-262"></a><span class="in">```</span></span>
+<span id="cb11-263"><a href="#cb11-263"></a></span>
+<span id="cb11-264"><a href="#cb11-264"></a>Next, we need a way to actually apply train this transformer. This is done by "overloading" the <span class="in">`fit_transformer`</span> method, </span>
+<span id="cb11-265"><a href="#cb11-265"></a></span>
+<span id="cb11-268"><a href="#cb11-268"></a><span class="in">```{julia}</span></span>
+<span id="cb11-269"><a href="#cb11-269"></a><span class="in">function fit_transformer(</span></span>
+<span id="cb11-270"><a href="#cb11-270"></a><span class="in">    data::CounterfactualData, input_encoder::Type{&lt;:CausalInference.SCM}; kwargs...</span></span>
+<span id="cb11-271"><a href="#cb11-271"></a><span class="in">)</span></span>
+<span id="cb11-272"><a href="#cb11-272"></a><span class="in">    t = Tables.table(transpose(data.X))</span></span>
+<span id="cb11-273"><a href="#cb11-273"></a><span class="in">    est_g, score = CausalInference.ges(t; penalty=1.0, parallel=true)</span></span>
+<span id="cb11-274"><a href="#cb11-274"></a><span class="in">    est_dag = CausalInference.pdag2dag!(est_g)</span></span>
+<span id="cb11-275"><a href="#cb11-275"></a><span class="in">    scm = CausalInference.estimate_equations(t, est_dag)</span></span>
+<span id="cb11-276"><a href="#cb11-276"></a><span class="in">    return scm</span></span>
+<span id="cb11-277"><a href="#cb11-277"></a><span class="in">end</span></span>
+<span id="cb11-278"><a href="#cb11-278"></a><span class="in">```</span> </span>
+<span id="cb11-279"><a href="#cb11-279"></a></span>
+<span id="cb11-280"><a href="#cb11-280"></a>which takes an input <span class="in">`data`</span>set and then relies on <span class="co">[</span><span class="ot">CausalInference.jl</span><span class="co">](https://github.com/mschauer/CausalInference.jl)</span> for causal discovery. </span>
+<span id="cb11-281"><a href="#cb11-281"></a></span>
+<span id="cb11-282"><a href="#cb11-282"></a>We are getting there ... but one implementation challenge is still left: how can we use the learned SCM during the counterfactual search?</span>
+<span id="cb11-283"><a href="#cb11-283"></a></span>
+<span id="cb11-284"><a href="#cb11-284"></a>Our idea was simple: during each gradient-step, just apply the SCM to all features of the counterfactual. Implementation-wise, this boiled down to overloading the <span class="in">`decode_array`</span> function, which handles the actual decoding step for all <span class="in">`InputTransformers`</span>:</span>
+<span id="cb11-285"><a href="#cb11-285"></a></span>
+<span id="cb11-288"><a href="#cb11-288"></a><span class="in">```{julia}</span></span>
+<span id="cb11-289"><a href="#cb11-289"></a><span class="in">#| output: false</span></span>
+<span id="cb11-290"><a href="#cb11-290"></a></span>
+<span id="cb11-291"><a href="#cb11-291"></a><span class="in">function decode_array(data::CounterfactualData, dt::CausalInference.SCM, x::AbstractArray)</span></span>
+<span id="cb11-292"><a href="#cb11-292"></a><span class="in">    return run_causal_effects(dt, x)</span></span>
+<span id="cb11-293"><a href="#cb11-293"></a><span class="in">end</span></span>
+<span id="cb11-294"><a href="#cb11-294"></a></span>
+<span id="cb11-295"><a href="#cb11-295"></a><span class="in">function run_causal_effects(scm::CausalInference.SCM, x::AbstractArray)</span></span>
+<span id="cb11-296"><a href="#cb11-296"></a><span class="in">    return scm.causal_effects[:, 1:(end - 1)] * x + scm.causal_effects[:, end] # bias</span></span>
+<span id="cb11-297"><a href="#cb11-297"></a><span class="in">end</span></span>
+<span id="cb11-298"><a href="#cb11-298"></a><span class="in">```</span></span>
+<span id="cb11-299"><a href="#cb11-299"></a></span>
+<span id="cb11-300"><a href="#cb11-300"></a>Here we are! Using this approach, gradient computations explicitly take the causal graph into account. We can now rely on standard workflows for gradient-based generators to solve a different minimization problem that incorporate causal effects.</span>
+<span id="cb11-301"><a href="#cb11-301"></a></span>
+<span id="cb11-302"><a href="#cb11-302"></a>:::{.callout-note}</span>
+<span id="cb11-303"><a href="#cb11-303"></a></span>
+<span id="cb11-304"><a href="#cb11-304"></a><span class="fu">## Concrete Generator Type</span></span>
+<span id="cb11-305"><a href="#cb11-305"></a></span>
+<span id="cb11-306"><a href="#cb11-306"></a>One piece that is still missing here is to implement a concrete generator type of the MINT Generator (<span class="co">[</span><span class="ot">#466</span><span class="co">](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/issues/466)</span>). That will make it easier for users to use the MINT Generator in the same way as all of our other counterfactual generators. This step has been postponed, because it hinges on an a larger development task (<span class="co">[</span><span class="ot">#435</span><span class="co">](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/issues/435)</span>).</span>
+<span id="cb11-307"><a href="#cb11-307"></a></span>
+<span id="cb11-308"><a href="#cb11-308"></a>:::</span>
+<span id="cb11-309"><a href="#cb11-309"></a></span>
+<span id="cb11-310"><a href="#cb11-310"></a><span class="fu">## Limitations and Future Work</span></span>
+<span id="cb11-311"><a href="#cb11-311"></a></span>
+<span id="cb11-312"><a href="#cb11-312"></a>Altough the range of lines of code was not tremendous, the hard work was. The merged code does not show every research and development I was guided during this time by the mentors. For example, initially we were trying a different approach to work with differentiation inside the <span class="in">`CounterfactualExplanations.jl`</span> package, where the code always broke 😅. But, without this obstacle, we could not have in mind a possible future work where the <span class="in">`run_causal_effects`</span> function could be more flexible. For example, as we said, the variables without causal parents are been assigned just to the unconditional mean, but in terms of counterfactuals theory, maybe using just the factual feature would be more realistic. But to do this we would need to work in the <span class="in">`causal_effects_matrix`</span> and this was part of my work creating <span class="in">`transformable_features`</span> for the SCM where we would probably need to use <span class="in">`ignore_derivatives()`</span> from <span class="in">`Zygote.jl`</span>.</span>
+<span id="cb11-313"><a href="#cb11-313"></a></span>
+<span id="cb11-316"><a href="#cb11-316"></a><span class="in">```{julia}</span></span>
+<span id="cb11-317"><a href="#cb11-317"></a><span class="in">#| output: false</span></span>
+<span id="cb11-318"><a href="#cb11-318"></a><span class="in">function transformable_features(</span></span>
+<span id="cb11-319"><a href="#cb11-319"></a><span class="in">    counterfactual_data::CounterfactualData, input_encoder::Type{CausalInference.SCM}</span></span>
+<span id="cb11-320"><a href="#cb11-320"></a><span class="in">)</span></span>
+<span id="cb11-321"><a href="#cb11-321"></a><span class="in">    g = counterfactual_data.input_encoder.dag</span></span>
+<span id="cb11-322"><a href="#cb11-322"></a><span class="in">    child_causal_nodes = [v for v in vertices(g) if indegree(g, v) &gt;= 1]</span></span>
+<span id="cb11-323"><a href="#cb11-323"></a><span class="in">    return child_causal_nodes</span></span>
+<span id="cb11-324"><a href="#cb11-324"></a><span class="in">end</span></span>
+<span id="cb11-325"><a href="#cb11-325"></a><span class="in">```</span></span>
+<span id="cb11-326"><a href="#cb11-326"></a></span>
+<span id="cb11-327"><a href="#cb11-327"></a></span>
+<span id="cb11-328"><a href="#cb11-328"></a> Another direction of future work is that the current implementation of the MINT Generator is limited to linear causal relations. One could extend this to non-linear causal relations, such as those found in neural networks. Additionally, the we could shift the paradigm to use Bayesian Inference to generate the causal equations. This work would be a new extension in <span class="in">`CausalInference.jl`</span>.</span>
+<span id="cb11-329"><a href="#cb11-329"></a></span>
+<span id="cb11-330"><a href="#cb11-330"></a><span class="fu">## Github PRs and Issues</span></span>
+<span id="cb11-331"><a href="#cb11-331"></a></span>
+<span id="cb11-332"><a href="#cb11-332"></a>In the following links, you can find the PRs and issues that were opened and closed during the project. They show some kind of history of the work developed:</span>
+<span id="cb11-333"><a href="#cb11-333"></a></span>
+<span id="cb11-334"><a href="#cb11-334"></a>*Causal Inference*:</span>
+<span id="cb11-335"><a href="#cb11-335"></a></span>
+<span id="cb11-336"><a href="#cb11-336"></a><span class="ss">- </span><span class="co">[</span><span class="ot">PR1 - SCM</span><span class="co">](https://github.com/mschauer/CausalInference.jl/pull/155)</span></span>
+<span id="cb11-337"><a href="#cb11-337"></a><span class="ss">- </span><span class="co">[</span><span class="ot">PR2 - causal effects matrix</span><span class="co">](https://github.com/mschauer/CausalInference.jl/pull/157)</span></span>
+<span id="cb11-338"><a href="#cb11-338"></a><span class="ss">- </span><span class="co">[</span><span class="ot">PR3 - version Julia register</span><span class="co">](https://github.com/mschauer/CausalInference.jl/pull/158)</span></span>
+<span id="cb11-339"><a href="#cb11-339"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Issue1 - Retrieve equations CausalGraph</span><span class="co">](https://github.com/mschauer/CausalInference.jl/issues/154)</span></span>
+<span id="cb11-340"><a href="#cb11-340"></a></span>
+<span id="cb11-341"><a href="#cb11-341"></a>*CounterfactualExplanations*:</span>
+<span id="cb11-342"><a href="#cb11-342"></a></span>
+<span id="cb11-343"><a href="#cb11-343"></a><span class="ss">- </span><span class="co">[</span><span class="ot">PR1 - encondings.jl</span><span class="co">](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/pull/461)</span></span>
+<span id="cb11-344"><a href="#cb11-344"></a><span class="ss">- </span><span class="co">[</span><span class="ot">PR2 - Constrained Optimization</span><span class="co">](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/pull/464)</span></span>
+<span id="cb11-345"><a href="#cb11-345"></a><span class="ss">- </span><span class="co">[</span><span class="ot">PR3 - add MINT docs</span><span class="co">](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/pull/468)</span></span>
+<span id="cb11-346"><a href="#cb11-346"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Issue1 - support for SCM</span><span class="co">](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/issues/456)</span></span>
+<span id="cb11-347"><a href="#cb11-347"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Issue2 - Constrained Optimization</span><span class="co">](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/issues/457)</span></span>
+<span id="cb11-348"><a href="#cb11-348"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Issue3 - Document MINT</span><span class="co">](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/issues/467)</span></span>
+<span id="cb11-349"><a href="#cb11-349"></a></span>
+<span id="cb11-350"><a href="#cb11-350"></a>And one that still open: </span>
+<span id="cb11-351"><a href="#cb11-351"></a></span>
+<span id="cb11-352"><a href="#cb11-352"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Issue4 - MINTGenerator Interface</span><span class="co">](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/issues/466)</span></span>
+<span id="cb11-353"><a href="#cb11-353"></a></span>
+<span id="cb11-354"><a href="#cb11-354"></a><span class="fu"># Usage</span></span>
+<span id="cb11-355"><a href="#cb11-355"></a></span>
+<span id="cb11-356"><a href="#cb11-356"></a>The MINT algorithm can be implemented using the <span class="in">`GenericGenerator`</span> and the SCM encoder, that we implement using <span class="in">`CausalInference.jl`</span> package. The following code snippet shows how to use the MINT algorithm to generate counterfactuals using any gradient-based generator:</span>
+<span id="cb11-357"><a href="#cb11-357"></a></span>
+<span id="cb11-360"><a href="#cb11-360"></a><span class="in">```{julia}</span></span>
+<span id="cb11-361"><a href="#cb11-361"></a><span class="in">#| eval: false</span></span>
+<span id="cb11-362"><a href="#cb11-362"></a><span class="in">#| output: true</span></span>
+<span id="cb11-363"><a href="#cb11-363"></a></span>
+<span id="cb11-364"><a href="#cb11-364"></a><span class="in">using CausalInference</span></span>
+<span id="cb11-365"><a href="#cb11-365"></a><span class="in">using CounterfactualExplanations</span></span>
+<span id="cb11-366"><a href="#cb11-366"></a><span class="in">using CounterfactualExplanations.DataPreprocessing: fit_transformer</span></span>
+<span id="cb11-367"><a href="#cb11-367"></a><span class="in">using Tables</span></span>
+<span id="cb11-368"><a href="#cb11-368"></a></span>
+<span id="cb11-369"><a href="#cb11-369"></a><span class="in">N = 2000</span></span>
+<span id="cb11-370"><a href="#cb11-370"></a><span class="in">df = (</span></span>
+<span id="cb11-371"><a href="#cb11-371"></a><span class="in">    x = randn(N), </span></span>
+<span id="cb11-372"><a href="#cb11-372"></a><span class="in">    v = randn(N) .^ 2 + randn(N) * 0.25, </span></span>
+<span id="cb11-373"><a href="#cb11-373"></a><span class="in">    w = cos.(randn(N)) + randn(N) * 0.25, </span></span>
+<span id="cb11-374"><a href="#cb11-374"></a><span class="in">    z = randn(N) .^ 2 + cos.(randn(N)) + randn(N) * 0.25 + randn(N) * 0.25, </span></span>
+<span id="cb11-375"><a href="#cb11-375"></a><span class="in">    s = sin.(randn(N) .^ 2 + cos.(randn(N)) + randn(N) * 0.25 + randn(N) * 0.25) + randn(N) * 0.25</span></span>
+<span id="cb11-376"><a href="#cb11-376"></a><span class="in">)</span></span>
+<span id="cb11-377"><a href="#cb11-377"></a><span class="in">y_lab = rand(0:2, N)</span></span>
+<span id="cb11-378"><a href="#cb11-378"></a><span class="in">counterfactual_data_scm = CounterfactualData(Tables.matrix(df; transpose=true), y_lab)</span></span>
+<span id="cb11-379"><a href="#cb11-379"></a></span>
+<span id="cb11-380"><a href="#cb11-380"></a><span class="in">M = fit_model(counterfactual_data_scm, :Linear)</span></span>
+<span id="cb11-381"><a href="#cb11-381"></a><span class="in">chosen = rand(findall(predict_label(M, counterfactual_data_scm) .== 1))</span></span>
+<span id="cb11-382"><a href="#cb11-382"></a><span class="in">x = select_factual(counterfactual_data_scm, chosen)</span></span>
+<span id="cb11-383"><a href="#cb11-383"></a></span>
+<span id="cb11-384"><a href="#cb11-384"></a><span class="in">data_scm = deepcopy(counterfactual_data_scm)</span></span>
+<span id="cb11-385"><a href="#cb11-385"></a><span class="in">data_scm.input_encoder = fit_transformer(data_scm, CausalInference.SCM)</span></span>
+<span id="cb11-386"><a href="#cb11-386"></a></span>
+<span id="cb11-387"><a href="#cb11-387"></a><span class="in">ce = generate_counterfactual(x, 2, data_scm, M, GenericGenerator(); initialization=:identity)</span></span>
+<span id="cb11-388"><a href="#cb11-388"></a><span class="in">```</span></span>
+<span id="cb11-389"><a href="#cb11-389"></a></span>
+<span id="cb11-390"><a href="#cb11-390"></a></span>
+<span id="cb11-391"><a href="#cb11-391"></a>For further usage reference access the <span class="co">[</span><span class="ot">MINT official documentation</span><span class="co">](https://juliatrustworthyai.github.io/CounterfactualExplanations.jl/dev/explanation/generators/mint/)</span>.</span>
+<span id="cb11-392"><a href="#cb11-392"></a></span>
+<span id="cb11-393"><a href="#cb11-393"></a><span class="fu"># Conclusion</span></span>
+<span id="cb11-394"><a href="#cb11-394"></a></span>
+<span id="cb11-395"><a href="#cb11-395"></a>During this project, I had the opportunity to contribute to both the XAI and Julia communities, where I implemented a SOTA method that used causal information to generate counterfactual explanations <span class="co">[</span><span class="ot">@karimi2021algorithmic</span><span class="co">]</span>. It was an amazing experience to work with incredible mentors and the community. I would like to once again thank Patrick and Moritz for all their guidance, as well as Jacob Zelko and JuliaHUB for all their support. I learned a lot about the Julia language and the Julia community, and I witnessed firsthand the benefits of Open Source. In fact, it was Open Source that made it possible to contribute to two repositories simultaneously. This experience of working locally on <span class="in">`CounterfactualExplanations.jl`</span> and <span class="in">`CausalInference.jl`</span> was invaluable, as it allowed me to truly understand how things work under the hood.</span>
+<span id="cb11-396"><a href="#cb11-396"></a></span>
+<span id="cb11-397"><a href="#cb11-397"></a>I hope that the MINT Generator can be useful to the community and that the package continues to be improved in the future. Contributing to a more trustworthy Artificial Intelligence has always been a goal of mine, and even though my contribution may be small, I feel proud to have achieved something meaningful. My wish is to continue contributing to the responsible use of AI. I am very grateful for this opportunity, and I look forward to continuing to contribute to the community. 🚀🚀🚀</span>
+<span id="cb11-398"><a href="#cb11-398"></a></span>
+<span id="cb11-399"><a href="#cb11-399"></a><span class="fu"># References</span></span>
+</code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p><a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" class="img-fluid" alt="License: MIT"></a> <a href="http://creativecommons.org/licenses/by/4.0/"><img src="https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg" class="img-fluid" alt="CC BY 4.0"></a> © 2024, Taija</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/JuliaTrustworthyAI/.github/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://www.taija.org/">
+      <i class="bi bi-house" role="img">
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/JuliaTrustworthyAI">
+      <i class="bi bi-github" role="img">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

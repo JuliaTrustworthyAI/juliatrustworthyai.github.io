@@ -1,0 +1,65 @@
+/*-- scss:defaults --*/
+// Base document colors
+$julia-blue: #4063D8;
+$primary: $julia_blue;
+$body-bg: lighten($primary, 43%);
+$body-color: darken($primary, 43%);
+
+// Navbar
+$navbar-bg: lighten($primary, 45%);
+
+// Footer
+$footer-bg: lighten($primary, 45%);
+
+// Welcome
+.welcome h1 {
+    color: #4063D8;
+    font-size: 3.5rem;
+}
+
+.welcome h2 {
+    border-bottom: 0cm;
+    margin-top: 0%;
+}
+
+// Hero banner 
+.hero-banner {
+    position: relative;
+    background-color: lighten($primary, 40%);
+    display: flex;
+    justify-content: center;
+    padding-left: 30px;
+    padding-right: 30px;
+    // padding-top: 10px;
+    flex-wrap: wrap;
+}
+
+.hero-banner-text {
+    flex: 1; /* Each item will take equal space */
+    min-width: 300px; /* Minimum width of each item */
+    margin: 10px;
+}
+
+.hero-banner-carousel {
+    flex: 1; /* Each item will take equal space */
+    min-width: 300px; /* Minimum width of each item */
+    margin: 10px;
+}
+
+// Carousel
+.carousel {
+    margin-top: 50px;
+}
+
+.carousel img {
+    width: 300px;
+    height: 300px;
+    max-width: 70%;
+    margin-bottom: 110px;
+    background-color: lighten($primary, 45%);
+}
+
+.carousel .carousel-control-prev-icon, 
+.carousel .carousel-control-next-icon {
+  margin-bottom: 110px;
+}

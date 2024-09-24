@@ -1,0 +1,24 @@
+# options specified here will apply to all posts in this folder
+
+# freeze computational output
+# (see https://quarto.org/docs/projects/code-execution.html#freeze)
+execute:
+  freeze: auto
+  eval: true
+  echo: true
+  output: false
+
+comments:
+  utterances:
+    repo: JuliaTrustworthyAI/.github
+    
+citation: true
+
+crossref:
+  fig-prefix: Figure
+  tbl-prefix: Table
+
+toc: true
+code-fold: show
+code-tools: true
+code-line-numbers: true
