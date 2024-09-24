@@ -24,7 +24,7 @@ website:
     right:
       - icon: github
         href: https://github.com/JuliaTrustworthyAI
-  repo-url: https://github.com/JuliaTrustworthyAI/.github
+  repo-url: https://github.com/JuliaTrustworthyAI/juliatrustworthyai.github.io
   repo-actions: [issue]
   page-footer: 
     left: >-

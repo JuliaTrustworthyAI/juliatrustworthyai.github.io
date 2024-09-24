@@ -16,7 +16,7 @@ Welcome to Taija's blog! Here you will find accessible introductions to packages
 
 ## Interested in contributing?
 
-Have you used one of our packages and found it useful? Or have you perhaps even contributed to one of our packages? We'd love for you to spread the word here! If you're interested in contributing a blog post, please get in touch or open a [pull request](https://github.com/JuliaTrustworthyAI/.github).
+Have you used one of our packages and found it useful? Or have you perhaps even contributed to one of our packages? We'd love for you to spread the word here! If you're interested in contributing a blog post, please get in touch or open a [pull request](https://github.com/JuliaTrustworthyAI/juliatrustworthyai.github.io).
 
 :::
 
