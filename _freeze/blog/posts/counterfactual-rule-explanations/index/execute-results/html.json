@@ -1,0 +1,12 @@
+{
+  "hash": "287b4a4028fa3e1f65ab6efc103452d5",
+  "result": {
+    "engine": "julia",
+    "markdown": "---\ntitle: \"Counterfactual Rule Explanations\"\nsubtitle: \"Global Explanations through Surrogate Trees (T-CREx)\"\ndate: '2024-09-24'\ndescription: |\n    New feature in [CounterfactualExplanations.jl](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl): Counterfactual Metarules for Local and Global Recourse [@bewley2024counterfactual]\nauthor: \n  - name: Patrick Altmeyer\n    url: www.patalt.org\n    orcid: 0000-0003-4726-8613\n    affiliation: \n      - name: Delft University of Technology\n        url: https://www.tudelft.nl/en/\ncategories:\n  - counterfactuals\n  - explainable AI\n  - global\n  - decision trees\n  - Julia\nimage: www/intro.png\nexecute:\n  eval: true\n  echo: true\nengine: julia\njulia: \n  exeflags: [\"--project=./\"]\ncode-fold: show\ndraft: true\n---\n\n",
+    "supporting": [
+      "index_files/figure-html"
+    ],
+    "filters": [],
+    "includes": {}
+  }
+}

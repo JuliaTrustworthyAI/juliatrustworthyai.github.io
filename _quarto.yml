@@ -24,6 +24,9 @@ website:
     right:
       - icon: github
         href: https://github.com/JuliaTrustworthyAI
+        
+  open-graph: true
+  google-analytics: G-BEEZ30787D
   repo-url: https://github.com/JuliaTrustworthyAI/juliatrustworthyai.github.io
   repo-actions: [issue]
   page-footer: 

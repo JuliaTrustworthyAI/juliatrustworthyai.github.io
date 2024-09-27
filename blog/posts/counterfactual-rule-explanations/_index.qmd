@@ -1,0 +1,29 @@
+---
+title: "Counterfactual Rule Explanations"
+subtitle: "Global Explanations through Surrogate Trees (T-CREx)"
+date: '2024-09-24'
+description: |
+    New feature in [CounterfactualExplanations.jl](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl): Counterfactual Metarules for Local and Global Recourse [@bewley2024counterfactual]
+author: 
+  - name: Patrick Altmeyer
+    url: www.patalt.org
+    orcid: 0000-0003-4726-8613
+    affiliation: 
+      - name: Delft University of Technology
+        url: https://www.tudelft.nl/en/
+categories:
+  - counterfactuals
+  - explainable AI
+  - global
+  - decision trees
+  - Julia
+image: www/intro.png
+execute:
+  eval: true
+  echo: true
+engine: julia
+julia: 
+  exeflags: ["--project=./"]
+code-fold: show
+draft: true
+---
