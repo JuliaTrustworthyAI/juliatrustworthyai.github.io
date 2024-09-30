@@ -27,9 +27,31 @@ julia:
 code-fold: show
 ---
 
-# T-CREx Generator
+Counterfactual Explanations were originally proposed as a framework for generating *local* explanations [@wachter2017counterfactual]. Local explanations are specific to individual samples [@molnar2022interpretable]. From the perspective of Algorithmic Recourse, also sometimes referred to as Individual Recourse, local explanations are desirable, because ideally we want to be able to generate recourse recommendations that are tailored to individuals. When we are instead primarily interested in explaining the general behaviour of opaque models, then local explanations may not be ideal, because they are subject to idiosyncrasy: any given local explanation inherently depends on characteristics that may uniquely apply to the individual in question. Consequently, there has recently been growing interest in generating *global* or *group-level* explanations through counterfactuals [@kanamori2022counterfactual; @ley2023globe; @warren2024explaining]. 
 
-The T-CREx is a novel model-agnostic counterfactual generator that can be used to generate local and global Counterfactual Rule Explanations (CREx) [@bewley2024counterfactual-icml].
+Although [CounterfactualExplanations.jl](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl) supports generating (multiple) counterfactuals for multiple instances at once, the package has so far lacked support for any of these more sophisticated approaches to generate group-level explanations. To address this gap, we have added support for the most novel and performant approach in version [v1.3.0](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/releases/tag/v1.3.0). This new approach called T-CREx was presented at ICML 2024, where we had the pleasure of meeting and speaking to [Tom Bewley](https://tombewley.com/), the corresponding author of the paper [@bewley2024counterfactual-icml].
+
+This post introduces the implementation of the `TCRExGenerator` from the ground up. Since the approach and implementation depart from the existing focus of [CounterfactualExplanations.jl](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl) on gradient-based generators, we expect future changes and extensions to this first implementation, which will be covered in future a follow-up blog post. 
+
+## Background {#sec-background}
+
+T-CREx stands for *T*rees for *C*ounterfactual *R*ule *Ex*planation [@bewley2024counterfactual-icml]. As the name implies, the approach relies on a tree-based surrogate model to generate counterfactual explanations. The authors make the distinction between Counterfactual Point Explanations (CPE) and Counterfactual Rule Explanations (CRE). Most readers will already be familiar with the concept of CPE, since this all of our existing counterfactual generators fall into this category: for some individual (factual), they generate an associated counterfactual point in some target domain. Point explanation have a very explicit nature, since they prescribe exact feature values for the counterfactual. Rule explanations (CRE), on the other hand, are more flexible in nature: they merely put bounds on the values of certain features, usually a subset of all features. 
+
+::: {.column-margin}
+
+::: {.callout-tip}
+
+## Example: CPE vs. CRE
+
+Suppose we want to provide recourse to an unsuccessful job applicant with `3 years` of relevant job experience and a `7.1/10` GPA in their bachelor's degree. A valid CPE might be that in order to secure the job, the individual should have exactly `4 years` of relevant job experience and a `8.5/10` GPA. A corresponding CRE might be that the individual should have acieved a GPA of `9.0/10` or higher in order to qualify for the job, independent of prior job experience.
+
+:::
+
+:::
+
+## Implementation
+
+As mentioned above, the basic implementation of T-CREx departs from the existing design of our package. This is primarily due to the fact that T-CREx introduces a new concept of Counterfactual Rule Explanations (CRE) described in @sec-background. We have therefore chosen to experiment with a new API for this generator. As with all other generators, the [TCRExGenerator](https://www.taija.org/CounterfactualExplanations.jl/v1.3/reference/#CounterfactualExplanations.Generators.TCRExGenerator) has its own concrete type. Contrary to existing generators, this type can be [called](https://www.taija.org/CounterfactualExplanations.jl/v1.3/reference/#CounterfactualExplanations.Generators.TCRExGenerator-Tuple%7BUnion%7BInt64,%20AbstractFloat,%20String,%20Symbol%7D,%20CounterfactualData,%20AbstractModel%7D) directly on a specified target label, data and model, reflecting its global nature: contrary to existing generators, T-CREx does not need a factual as a reference and starting point to generate a corresponding CPE. Rule explanations for a given target class can be generated using only the model and corresponding training data. The learned CRE can then be applied to individual instances, which effectively boils down to choosing the optimal rule for said individual from a set of learned rules. If this all sounds a bit confusing at this point, read on in @sec-usage for a concrete usage example.
 
 ::: {.content-visible when-format="html"}
 
@@ -51,7 +73,7 @@ Work on this feature is still in its very early stages and breaking changes shou
 
 :::
 
-## Usage
+### Usage Example {#sec-usage}
 
 The implementation of the `TCRExGenerator` depends on [DecisionTree.jl](https://github.com/JuliaAI/DecisionTree.jl). For the time being, we have decided to not add a strong dependency on DecisionTree.jl to the package. Instead, the functionality of the `TCRExGenerator` is made available through the `DecisionTreeExt` extension, which will be loaded conditionally on loading the [DecisionTree.jl](https://github.com/JuliaAI/DecisionTree.jl) (see [Julia docs](https://pkgdocs.julialang.org/v1/creating-packages/#Conditional-loading-of-code-in-packages-(Extensions)) for more details extensions):
 
@@ -115,19 +137,21 @@ Next, we instantiate the generator much like any other counterfactual generator 
 generator = Generators.TCRExGenerator(ρ=ρ, τ=τ)
 ```
 
-Finally, we can use the `TCRExGenerator` instance to generate a (global) counterfactual rule epxlanation (CRE) for the given target, data and model as follows:
+As mentioned above, this instance is callable. In particular, we can call it on the given target, data and model to generate a (global) counterfactual rule epxlanation (CRE) as follows:
 
 ```{julia}
 cre = generator(target, data, M)        # counterfactual rule explanation (global)
 ```
 
-The CRE can be applied to our factual `x` to derive a (local) counterfactual point explanation (CPE):
+To generate a local explanation (CPE) for our factual instance `x`, the learned `cre` can itself be called on `x`:
 
 ```{julia}
 idx, optimal_rule = cre(x)              # counterfactual point explanation (local)
 ```
 
-## Worked Example from @bewley2024counterfactual-icml
+What we have seen so far corresponds to the current user-facing API for the T-CREx generator. If that is all you were after when opening this blog post, you can stop here. Otherwise, read on to find out how exactly the approach works, step-by-step.
+
+### Worked Example from @bewley2024counterfactual-icml
 
 To make better sense of this, we will now go through the worked example presented in @bewley2024counterfactual-icml. For this purpose, we need to make the functions of the `DecisionTreeExt` extension available.
 
@@ -156,7 +180,7 @@ Please note that of the `DecisionTreeExt` extension is loaded here purely for de
 DTExt = Base.get_extension(CounterfactualExplanations, :DecisionTreeExt)
 ```
 
-### (a) Tree-based surrogate model 
+#### (a) Tree-based surrogate model 
 
 In the first step, we train a tree-based surrogate model based on the data and the black-box model `M`. Specifically, the surrogate model is trained on pairs of observed input data and the labels predicted by the black-box model: $\{(x, M(x))\}_{1\leq i \leq n}$. 
 
@@ -238,7 +262,7 @@ plot_grid!(plt, R)
 plt
 ```
 
-### (b) Maximal-valid rules 
+#### (b) Maximal-valid rules 
 
 From the complete set of rules derived from the surrogate tree, we can derive the maximal-valid rules next. Intuitively, "a maximal-valid rule is one that cannot be made any larger without violating the validity conditions", where validity is defined in terms of both *feasibility* (`generator.ρ`) and accuracy (`generator.τ`). 
 
@@ -269,7 +293,7 @@ plot_surr!(p1)
 p1
 ```
 
-### (c) Induced grid partition
+#### (c) Induced grid partition
 
 Based on the set of maximal-valid rules, we compute and plot the induced grid partition below.
 
@@ -287,7 +311,7 @@ plot_grid!(p2, _grid)
 p2
 ```
 
-### (d) Grid cell prototypes 
+#### (d) Grid cell prototypes 
 
 Next, we pick prototypes from each cell in the induced grid. By setting `pick_arbitrary=false` here we enfore that prototypes correspond to cell centroids, which is not necessary. For each prototype, we compute the corresponding CRE, which is indicated by the color of the large markers in the figure below:
 
@@ -303,7 +327,7 @@ scatter!(p3, eachrow(hcat(xs...))..., ms=10, label=nothing, color=Rᶜ.+2)
 p3
 ```
 
-### (e) - (f) Global CE representation
+#### (e) - (f) Global CE representation
 
 Based on the prototypes and their corresponding rule assignments, we fit a CART classification tree with restricted feature thresholds. Specificically, features thresholds are restricted to the partition bounds induced by the set of maximal-valid rules as in @bewley2024counterfactual-icml. The figure below shows the resulting global CE representation (i.e. the metarules).
 
@@ -332,7 +356,7 @@ end
 p4
 ```
 
-### (g) Local CE example
+#### (g) Local CE example
 
 To generate a local explanation based on the global CE representation, we simply apply the CART decision tree classifier from the previous step to our factual:
 
@@ -352,5 +376,13 @@ p5
 
 savefig(p5, "www/intro.png")
 ```
+
+## Conclusion
+
+This blog post has introduced the `TCRExGenerator`, a novel approach towards generating global counterfactual explanations. We have explained the high-level details of this approach proposed by @bewley2024counterfactual-icml, presented the current version of the corresponding API in [CounterfactualExplanations.jl](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl) and, finally, described the details of the implementation. Since this approach and implementation represent a departure from the existing focus and design of our package, we expect future breaking changes and extensions. 
+
+## Acknowledgements
+
+Patrick is grateful to Tom Bewley for an interesting chat during ICML and his [support](https://github.com/JuliaTrustworthyAI/CounterfactualExplanations.jl/discussions/478) with this implementation.
 
 ## References
