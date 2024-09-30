@@ -20,7 +20,27 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -196,7 +216,7 @@ window.Quarto = {
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(9)</span></div><div class="category" data-category="Julia">Julia <span class="quarto-category-count">(8)</span></div><div class="category" data-category="bayes">bayes <span class="quarto-category-count">(1)</span></div><div class="category" data-category="bayesian deep learning">bayesian deep learning <span class="quarto-category-count">(1)</span></div><div class="category" data-category="bayesian inference">bayesian inference <span class="quarto-category-count">(1)</span></div><div class="category" data-category="causality">causality <span class="quarto-category-count">(1)</span></div><div class="category" data-category="conformal prediction">conformal prediction <span class="quarto-category-count">(4)</span></div><div class="category" data-category="counterfactuals">counterfactuals <span class="quarto-category-count">(2)</span></div><div class="category" data-category="deep learning">deep learning <span class="quarto-category-count">(1)</span></div><div class="category" data-category="energy-based models">energy-based models <span class="quarto-category-count">(1)</span></div><div class="category" data-category="explainable AI">explainable AI <span class="quarto-category-count">(2)</span></div><div class="category" data-category="guest post">guest post <span class="quarto-category-count">(1)</span></div><div class="category" data-category="laplace approximation">laplace approximation <span class="quarto-category-count">(1)</span></div><div class="category" data-category="llm">llm <span class="quarto-category-count">(1)</span></div><div class="category" data-category="new package">new package <span class="quarto-category-count">(1)</span></div><div class="category" data-category="probabilistic programming">probabilistic programming <span class="quarto-category-count">(1)</span></div><div class="category" data-category="regression">regression <span class="quarto-category-count">(1)</span></div><div class="category" data-category="transformers">transformers <span class="quarto-category-count">(1)</span></div><div class="category" data-category="uncertainty">uncertainty <span class="quarto-category-count">(3)</span></div></div></div>
+    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(10)</span></div><div class="category" data-category="Julia">Julia <span class="quarto-category-count">(9)</span></div><div class="category" data-category="bayes">bayes <span class="quarto-category-count">(1)</span></div><div class="category" data-category="bayesian deep learning">bayesian deep learning <span class="quarto-category-count">(1)</span></div><div class="category" data-category="bayesian inference">bayesian inference <span class="quarto-category-count">(1)</span></div><div class="category" data-category="causality">causality <span class="quarto-category-count">(1)</span></div><div class="category" data-category="conformal prediction">conformal prediction <span class="quarto-category-count">(4)</span></div><div class="category" data-category="counterfactuals">counterfactuals <span class="quarto-category-count">(3)</span></div><div class="category" data-category="decision trees">decision trees <span class="quarto-category-count">(1)</span></div><div class="category" data-category="deep learning">deep learning <span class="quarto-category-count">(1)</span></div><div class="category" data-category="energy-based models">energy-based models <span class="quarto-category-count">(1)</span></div><div class="category" data-category="explainable AI">explainable AI <span class="quarto-category-count">(3)</span></div><div class="category" data-category="global">global <span class="quarto-category-count">(1)</span></div><div class="category" data-category="guest post">guest post <span class="quarto-category-count">(1)</span></div><div class="category" data-category="laplace approximation">laplace approximation <span class="quarto-category-count">(1)</span></div><div class="category" data-category="llm">llm <span class="quarto-category-count">(1)</span></div><div class="category" data-category="new package">new package <span class="quarto-category-count">(1)</span></div><div class="category" data-category="probabilistic programming">probabilistic programming <span class="quarto-category-count">(1)</span></div><div class="category" data-category="regression">regression <span class="quarto-category-count">(1)</span></div><div class="category" data-category="transformers">transformers <span class="quarto-category-count">(1)</span></div><div class="category" data-category="uncertainty">uncertainty <span class="quarto-category-count">(3)</span></div></div></div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
@@ -237,9 +257,44 @@ Interested in contributing?
 
 
 
+
 <div class="quarto-listing quarto-listing-container-default" id="listing-listing">
 <div class="list quarto-listing-default">
-<div class="quarto-post image-left" data-index="0" data-categories="counterfactuals,explainable AI,causality,Julia" data-listing-date-sort="1726524000000" data-listing-file-modified-sort="1727164042385" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="14" data-listing-word-count-sort="2655">
+<div class="quarto-post image-left" data-index="0" data-categories="counterfactuals,explainable AI,global,decision trees,Julia" data-listing-date-sort="1727128800000" data-listing-file-modified-sort="1727682694743" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="9" data-listing-word-count-sort="1621">
+<div class="thumbnail">
+<p><a href="../blog/posts/counterfactual-rule-explanations/index.html" class="no-external"></a></p><a href="../blog/posts/counterfactual-rule-explanations/index.html" class="no-external">
+<p><img loading="lazy" src="../blog/posts/counterfactual-rule-explanations/www/intro.png" class="thumbnail-image"></p>
+</a><p><a href="../blog/posts/counterfactual-rule-explanations/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="../blog/posts/counterfactual-rule-explanations/index.html" class="no-external">Counterfactual Rule Explanations</a>
+</h3>
+<div class="listing-subtitle">
+<a href="../blog/posts/counterfactual-rule-explanations/index.html" class="no-external">Global and Local Explanations through Surrogate Trees (T-CREx)</a>
+</div>
+<div class="listing-description">
+<a href="../blog/posts/counterfactual-rule-explanations/index.html" class="no-external">New feature in <span>CounterfactualExplanations.jl</span>: Counterfactual Metarules for Local and Global Recourse <span class="citation" data-cites="bewley2024counterfactual">(</span></a><a href="#ref-bewley2024counterfactual" role="doc-biblioref">Bewley et al. 2024</a>) 
+</div>
+</div>
+<div class="metadata">
+<a href="../blog/posts/counterfactual-rule-explanations/index.html" class="no-external">
+<div class="listing-date">
+Sep 24, 2024
+</div>
+<div class="listing-author">
+Patrick Altmeyer
+</div>
+<div class="listing-reading-time">
+9 min
+</div>
+<div class="metadata-value listing-file-modified">
+9/30/24, 9:51:34 AM
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-left" data-index="1" data-categories="counterfactuals,explainable AI,causality,Julia" data-listing-date-sort="1726524000000" data-listing-file-modified-sort="1727164042385" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="14" data-listing-word-count-sort="2655">
 <div class="thumbnail">
 <p><a href="../blog/posts/causal-recourse/index.html" class="no-external"></a></p><a href="../blog/posts/causal-recourse/index.html" class="no-external">
 <p><img loading="lazy" src="../blog/posts/causal-recourse/www/intro.png" class="thumbnail-image"></p>
@@ -273,7 +328,7 @@ Jorge Luiz Franco
 </a>
 </div>
 </div>
-<div class="quarto-post image-left" data-index="1" data-categories="energy-based models,bayesian inference,new package" data-listing-date-sort="1725573600000" data-listing-file-modified-sort="1727164042546" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1325">
+<div class="quarto-post image-left" data-index="2" data-categories="energy-based models,bayesian inference,new package" data-listing-date-sort="1725573600000" data-listing-file-modified-sort="1727164042546" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1325">
 <div class="thumbnail">
 <p><a href="../blog/posts/new-package-energysamplers/index.html" class="no-external"></a></p><a href="../blog/posts/new-package-energysamplers/index.html" class="no-external">
 <p><img loading="lazy" src="../blog/posts/new-package-energysamplers/www/intro.gif" class="thumbnail-image"></p>
@@ -307,7 +362,7 @@ Patrick Altmeyer
 </a>
 </div>
 </div>
-<div class="quarto-post image-left" data-index="2" data-categories="conformal prediction,transformers,llm,Julia" data-listing-date-sort="1688508000000" data-listing-file-modified-sort="1727164042427" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1347">
+<div class="quarto-post image-left" data-index="3" data-categories="conformal prediction,transformers,llm,Julia" data-listing-date-sort="1688508000000" data-listing-file-modified-sort="1727164042427" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1347">
 <div class="thumbnail">
 <p><a href="../blog/posts/conformal-llm/index.html" class="no-external"></a></p><a href="../blog/posts/conformal-llm/index.html" class="no-external">
 <p><img loading="lazy" src="../blog/posts/conformal-llm/www/intro.gif" class="thumbnail-image"></p>
@@ -341,7 +396,7 @@ Patrick Altmeyer
 </a>
 </div>
 </div>
-<div class="quarto-post image-left" data-index="3" data-categories="bayesian deep learning,laplace approximation,guest post,Julia" data-listing-date-sort="1688421600000" data-listing-file-modified-sort="1727164042522" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2170">
+<div class="quarto-post image-left" data-index="4" data-categories="bayesian deep learning,laplace approximation,guest post,Julia" data-listing-date-sort="1688421600000" data-listing-file-modified-sort="1727164042522" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2170">
 <div class="thumbnail">
 <p><a href="../blog/posts/guest-students-laplace/index.html" class="no-external"></a></p><a href="../blog/posts/guest-students-laplace/index.html" class="no-external">
 <p><img loading="lazy" src="../blog/posts/guest-students-laplace/www/intro.png" class="thumbnail-image"></p>
@@ -375,7 +430,7 @@ Severin Bratus, Mark Ardman, Adelina Cazacu, Andrei Ionescu, Ivan Makarov, Patri
 </a>
 </div>
 </div>
-<div class="quarto-post image-left" data-index="4" data-categories="probabilistic programming,uncertainty,conformal prediction,regression,Julia" data-listing-date-sort="1670799600000" data-listing-file-modified-sort="1727164042460" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2182">
+<div class="quarto-post image-left" data-index="5" data-categories="probabilistic programming,uncertainty,conformal prediction,regression,Julia" data-listing-date-sort="1670799600000" data-listing-file-modified-sort="1727164042460" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2182">
 <div class="thumbnail">
 <p><a href="../blog/posts/conformal-regression/index.html" class="no-external"></a></p><a href="../blog/posts/conformal-regression/index.html" class="no-external">
 <p><img loading="lazy" src="../blog/posts/conformal-regression/www/intro.gif" class="thumbnail-image"></p>
@@ -409,7 +464,7 @@ Patrick Altmeyer
 </a>
 </div>
 </div>
-<div class="quarto-post image-left" data-index="5" data-categories="conformal prediction,uncertainty,Julia" data-listing-date-sort="1670194800000" data-listing-file-modified-sort="1727164042408" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="9" data-listing-word-count-sort="1690">
+<div class="quarto-post image-left" data-index="6" data-categories="conformal prediction,uncertainty,Julia" data-listing-date-sort="1670194800000" data-listing-file-modified-sort="1727164042408" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="9" data-listing-word-count-sort="1690">
 <div class="thumbnail">
 <p><a href="../blog/posts/conformal-image-classifier/index.html" class="no-external"></a></p><a href="../blog/posts/conformal-image-classifier/index.html" class="no-external">
 <p><img loading="lazy" src="../blog/posts/conformal-image-classifier/www/intro.gif" class="thumbnail-image"></p>
@@ -443,7 +498,7 @@ Patrick Altmeyer
 </a>
 </div>
 </div>
-<div class="quarto-post image-left" data-index="6" data-categories="conformal prediction,uncertainty,Julia" data-listing-date-sort="1666648800000" data-listing-file-modified-sort="1727164042450" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="15" data-listing-word-count-sort="2921">
+<div class="quarto-post image-left" data-index="7" data-categories="conformal prediction,uncertainty,Julia" data-listing-date-sort="1666648800000" data-listing-file-modified-sort="1727164042450" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="15" data-listing-word-count-sort="2921">
 <div class="thumbnail">
 <p><a href="../blog/posts/conformal-prediction/index.html" class="no-external"></a></p><a href="../blog/posts/conformal-prediction/index.html" class="no-external">
 <p><img loading="lazy" src="../blog/posts/conformal-prediction/www/intro.gif" class="thumbnail-image"></p>
@@ -477,7 +532,7 @@ Patrick Altmeyer
 </a>
 </div>
 </div>
-<div class="quarto-post image-left" data-index="7" data-categories="counterfactuals,explainable AI,Julia" data-listing-date-sort="1650405600000" data-listing-file-modified-sort="1727164042365" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="12" data-listing-word-count-sort="2221">
+<div class="quarto-post image-left" data-index="8" data-categories="counterfactuals,explainable AI,Julia" data-listing-date-sort="1650405600000" data-listing-file-modified-sort="1727164042365" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="12" data-listing-word-count-sort="2221">
 <div class="thumbnail">
 <p><a href="../blog/posts/a-new-tool-for-explainable-ai/index.html" class="no-external"></a></p><a href="../blog/posts/a-new-tool-for-explainable-ai/index.html" class="no-external">
 <p><img loading="lazy" src="../blog/posts/a-new-tool-for-explainable-ai/www/intro.gif" class="thumbnail-image"></p>
@@ -511,7 +566,7 @@ Patrick Altmeyer
 </a>
 </div>
 </div>
-<div class="quarto-post image-left" data-index="8" data-categories="bayes,deep learning,Julia" data-listing-date-sort="1645138800000" data-listing-file-modified-sort="1727164042479" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="12" data-listing-word-count-sort="2249">
+<div class="quarto-post image-left" data-index="9" data-categories="bayes,deep learning,Julia" data-listing-date-sort="1645138800000" data-listing-file-modified-sort="1727164042479" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="12" data-listing-word-count-sort="2249">
 <div class="thumbnail">
 <p><a href="../blog/posts/effortsless-bayesian-dl/index.html" class="no-external"></a></p><a href="../blog/posts/effortsless-bayesian-dl/index.html" class="no-external">
 <p><img loading="lazy" src="../blog/posts/effortsless-bayesian-dl/www/intro.gif" class="thumbnail-image"></p>
@@ -549,7 +604,11 @@ Patrick Altmeyer
 <div class="listing-no-matching d-none">
 No matching items
 </div>
-</div></main> <!-- /main -->
+</div><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-bewley2024counterfactual" class="csl-entry" role="listitem">
+Bewley, Tom, Salim I. Amoukou, Saumitra Mishra, Daniele Magazzeni, and Manuela Veloso. 2024. <span>“Counterfactual Metarules for Local and Global Recourse.”</span> <a href="https://arxiv.org/abs/2405.18875">https://arxiv.org/abs/2405.18875</a>.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

@@ -1,0 +1,13 @@
+# Package Information for pkg-config
+
+prefix=/Users/paltmeyer/code/taija/juliatrustworthyai.github.io/blog/posts/counterfactual-rule-explanations/.CondaPkg/env
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: SQLite
+Description: SQL database engine
+Version: 3.46.1
+Libs: -L${libdir} -lsqlite3
+Libs.private: -lz 
+Cflags: -I${includedir}

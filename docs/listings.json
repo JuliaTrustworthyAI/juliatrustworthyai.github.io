@@ -2,6 +2,7 @@
   {
     "listing": "/blog/index.html",
     "items": [
+      "/blog/posts/counterfactual-rule-explanations/index.html",
       "/blog/posts/causal-recourse/index.html",
       "/blog/posts/new-package-energysamplers/index.html",
       "/blog/posts/conformal-llm/index.html",
