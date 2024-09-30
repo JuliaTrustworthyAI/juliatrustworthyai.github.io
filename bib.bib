@@ -3462,6 +3462,71 @@ abstract = {Written by one of the preeminent researchers in the field, this book
   year          = {2024},
 }
 
+@InProceedings{bewley2024counterfactual-icml,
+  author    = {Bewley, Tom and I. Amoukou, Salim and Mishra, Saumitra and Magazzeni, Daniele and Veloso, Manuela},
+  booktitle = {Proceedings of the 41st International Conference on Machine Learning},
+  title     = {Counterfactual Metarules for Local and Global Recourse},
+  editor    = {Salakhutdinov, Ruslan and Kolter, Zico and Heller, Katherine and Weller, Adrian and Oliver, Nuria and Scarlett, Jonathan and Berkenkamp, Felix},
+  pages     = {3707--3724},
+  publisher = {PMLR},
+  series    = {Proceedings of Machine Learning Research},
+  url       = {https://proceedings.mlr.press/v235/bewley24a.html},
+  volume    = {235},
+  abstract  = {We introduce <b>T-CREx</b>, a novel model-agnostic method for local and global counterfactual explanation (CE), which summarises recourse options for both individuals and groups in the form of generalised rules. It leverages tree-based surrogate models to learn the counterfactual rules, alongside <em>metarules</em> denoting their regimes of optimality, providing both a global analysis of model behaviour and diverse recourse options for users. Experiments indicate that <b>T-CREx</b> achieves superior aggregate performance over existing rule-based baselines on a range of CE desiderata, while being orders of magnitude faster to run.},
+  month     = {21--27 Jul},
+  pdf       = {https://raw.githubusercontent.com/mlresearch/v235/main/assets/bewley24a/bewley24a.pdf},
+  year      = {2024},
+}
+
+@InProceedings{ley2023globe,
+  author    = {Ley, Dan and Mishra, Saumitra and Magazzeni, Daniele},
+  booktitle = {Proceedings of the 40th International Conference on Machine Learning},
+  title     = {{GLOBE}-{CE}: A Translation Based Approach for Global Counterfactual Explanations},
+  editor    = {Krause, Andreas and Brunskill, Emma and Cho, Kyunghyun and Engelhardt, Barbara and Sabato, Sivan and Scarlett, Jonathan},
+  pages     = {19315--19342},
+  publisher = {PMLR},
+  series    = {Proceedings of Machine Learning Research},
+  url       = {https://proceedings.mlr.press/v202/ley23a.html},
+  volume    = {202},
+  abstract  = {Counterfactual explanations have been widely studied in explainability, with a range of application dependent methods prominent in fairness, recourse and model understanding. The major shortcoming associated with these methods, however, is their inability to provide explanations beyond the local or instance-level. While many works touch upon the notion of a global explanation, typically suggesting to aggregate masses of local explanations in the hope of ascertaining global properties, few provide frameworks that are both reliable and computationally tractable. Meanwhile, practitioners are requesting more efficient and interactive explainability tools. We take this opportunity to propose Global &amp; Efficient Counterfactual Explanations (GLOBE-CE), a flexible framework that tackles the reliability and scalability issues associated with current state-of-the-art, particularly on higher dimensional datasets and in the presence of continuous features. Furthermore, we provide a unique mathematical analysis of categorical feature translations, utilising it in our method. Experimental evaluation with publicly available datasets and user studies demonstrate that GLOBE-CE performs significantly better than the current state-of-the-art across multiple metrics (e.g., speed, reliability).},
+  month     = {23--29 Jul},
+  pdf       = {https://proceedings.mlr.press/v202/ley23a/ley23a.pdf},
+  year      = {2023},
+}
+
+@InProceedings{kanamori2022counterfactual,
+  author    = {Kanamori, Kentaro and Takagi, Takuya and Kobayashi, Ken and Ike, Yuichi},
+  booktitle = {Proceedings of The 25th International Conference on Artificial Intelligence and Statistics},
+  title     = {Counterfactual Explanation Trees: Transparent and Consistent Actionable Recourse with Decision Trees},
+  editor    = {Camps-Valls, Gustau and Ruiz, Francisco J. R. and Valera, Isabel},
+  pages     = {1846--1870},
+  publisher = {PMLR},
+  series    = {Proceedings of Machine Learning Research},
+  url       = {https://proceedings.mlr.press/v151/kanamori22a.html},
+  volume    = {151},
+  abstract  = {Counterfactual Explanation (CE) is a post-hoc explanation method that provides a perturbation for altering the prediction result of a classifier. An individual can interpret the perturbation as an "action" to obtain the desired decision results. Existing CE methods focus on providing an action, which is optimized for a given single instance. However, these CE methods do not address the case where we have to assign actions to multiple instances simultaneously. In such a case, we need a framework of CE that assigns actions to multiple instances in a transparent and consistent way. In this study, we propose Counterfactual Explanation Tree (CET) that assigns effective actions with decision trees. Due to the properties of decision trees, our CET has two advantages: (1) Transparency: the reasons for assigning actions are summarized in an interpretable structure, and (2) Consistency: these reasons do not conflict with each other. We learn a CET in two steps: (i) compute one effective action for multiple instances and (ii) partition the instances to balance the effectiveness and interpretability. Numerical experiments and user studies demonstrated the efficacy of our CET in comparison with existing methods.},
+  month     = {28--30 Mar},
+  pdf       = {https://proceedings.mlr.press/v151/kanamori22a/kanamori22a.pdf},
+  year      = {2022},
+}
+
+@InProceedings{warren2024explaining,
+  author    = {Warren, Greta and Delaney, Eoin and Gu\'{e}ret, Christophe and Keane, Mark T.},
+  booktitle = {Case-Based Reasoning Research and Development: 32nd International Conference, ICCBR 2024, Merida, Mexico, July 1–4, 2024, Proceedings},
+  title     = {Explaining Multiple Instances Counterfactually:User Tests of&nbsp;Group-Counterfactuals for&nbsp;XAI},
+  doi       = {10.1007/978-3-031-63646-2_14},
+  isbn      = {978-3-031-63645-5},
+  location  = {Merida, Mexico},
+  pages     = {206–222},
+  publisher = {Springer-Verlag},
+  url       = {https://doi.org/10.1007/978-3-031-63646-2_14},
+  abstract  = {Counterfactual explanations have become a major focus for post-hoc explainability research in recent years, as they seem to provide good algorithmic recourse solutions, people can readily understand them, and they may meet legal regulations (such as GDPR in the EU). However, this large literature has only addressed the use of counterfactual explanations to explain single predictive-instances. Here, we explore a novel use case in which groups of similar instances are explained in a collective fashion using “group counterfactuals” (e.g., to highlight a repeating pattern of illness in a group of patients). Group counterfactuals potentially provide broad explanations covering multiple events/instances. A novel case-based, group-counterfactual algorithm is proposed to generate such explanations and a user study is also reported to test the psychological validity of the algorithm.},
+  address   = {Berlin, Heidelberg},
+  keywords  = {XAI, Explainability, Counterfactuals, User-Centered},
+  numpages  = {17},
+  year      = {2024},
+}
+
 @Comment{jabref-meta: databaseType:biblatex;}
 
 @Comment{jabref-meta: keypatterndefault:[auth:lower][year][veryshorttitle:lower];}
