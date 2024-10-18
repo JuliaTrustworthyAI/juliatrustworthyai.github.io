@@ -134,7 +134,7 @@ Other external packages and ecosystems related to Trustworthy AI in Julia includ
 
 ## Contact
 
-Probably the easiest way is to join the [JuliaLang Slack](https://julialang.org/slack/) and join our \#taija channel. You can also post a GitHub Issue on our organization [repo](https://github.com/JuliaTrustworthyAI/.github/issues). You can find [@pat-alt](https://github.com/pat-alt)’s socials and contact details on his website: [www.patalt.org](www.patalt.org).
+Probably the easiest way is to join the [JuliaLang Slack](https://julialang.org/slack/) and join our \#taija channel. You can also post a GitHub Issue on our organization [repo](https://github.com/JuliaTrustworthyAI/.github/issues). You can find [@pat-alt](https://github.com/pat-alt)’s socials and contact details on his website: [www.patalt.org](https://www.patalt.org).
 
 ## 🎓 References
 
