@@ -268,4 +268,8 @@ scatter!(x2[1, :], x2[2, :], color=2, label="Xhat|y=1", ms=4, alpha=0.5)
 plot(plt)
 ```
 
+
+
+{{< bluesky-comments uri="at://did:plc:xyzhkqg2xuo7beebnikmdhb2/app.bsky.feed.post/3lbyyf4gqgc24" >}}
+
 ## References
